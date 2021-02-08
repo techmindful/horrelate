@@ -35,6 +35,12 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - horrelate
+    - dear-imgui
+    - vulkan
+    - vulkan-utils
+    - gl
+    - sdl2
+    - managed
 
 tests:
   horrelate-test:
