@@ -20,12 +20,17 @@ import qualified SDL
 import           Foreign.C.Types
 import           Foreign.Ptr
 
+
+type ImGuiWindowPos  = IORef DearImGui.ImVec2
+type ImGuiWindowSize = IORef DearImGui.ImVec2
+
 main :: IO ()
 main = do
 
   SDL.initializeAll
 
   imguiWindowSize <- newIORef $ DearImGui.ImVec2 1280 720
+  imguiWindowPos  <- newIORef $ DearImGui.ImVec2 0 0
 
   runManaged do
     -- Create a window using SDL. As we're using OpenGL, we need to enable OpenGL too.
@@ -50,11 +55,11 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    liftIO $ mainLoop window imguiWindowSize
+    liftIO $ mainLoop window imguiWindowPos imguiWindowSize
 
 
-mainLoop :: SDL.Window -> IORef DearImGui.ImVec2 -> IO ()
-mainLoop window windowSize = do
+mainLoop :: SDL.Window -> ImGuiWindowPos -> ImGuiWindowSize -> IO ()
+mainLoop window windowPos windowSize = do
   -- Process the event loop
   untilNothingM DearImGui.SDL.pollEventWithImGui
 
@@ -63,12 +68,13 @@ mainLoop window windowSize = do
   sdl2NewFrame window
   DearImGui.newFrame
 
-  -- Set window size.
+  -- Resize and place ImGui window to fit SDL window.
   SDL.V2 (CInt windowSizeX) (CInt windowSizeY) <- SDL.get $ SDL.windowSize window
   writeIORef windowSize $ DearImGui.ImVec2 (fromIntegral windowSizeX) (fromIntegral windowSizeY)
   DearImGui.setNextWindowSize windowSize DearImGui.ImGuiCond_Always
+  DearImGui.setNextWindowPos windowPos DearImGui.ImGuiCond_Once Nothing
 
-  -- Add widgets.
+  -- Build window, add widgets.
   bracket_ ( DearImGui.begin "Hello, ImGui!" ) DearImGui.end do
     -- Add a text widget
     DearImGui.text "Hello, ImGui!"
@@ -92,7 +98,7 @@ mainLoop window windowSize = do
 
   SDL.glSwapWindow window
 
-  mainLoop window windowSize
+  mainLoop window windowPos windowSize
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
