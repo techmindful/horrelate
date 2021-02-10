@@ -10,6 +10,7 @@ import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
 import qualified DearImGui
+import           DearImGui ( ImVec2(..) )
 import           DearImGui.OpenGL2 ( openGL2Init, openGL2Shutdown, openGL2NewFrame, openGL2RenderDrawData )
 import qualified DearImGui.SDL
 import           DearImGui.SDL ( sdl2Shutdown, sdl2NewFrame )
@@ -21,9 +22,11 @@ import           Foreign.C.Types
 import           Foreign.Ptr
 
 
-type ImGuiWindowPosRef  = IORef DearImGui.ImVec2
-type ImGuiWindowSizeRef = IORef DearImGui.ImVec2
-type CmdInputPosRef     = IORef DearImGui.ImVec2
+type ImGuiWindowPosRef  = IORef ImVec2
+type ImGuiWindowSizeRef = IORef ImVec2
+type CmdInputPosRef     = IORef ImVec2
+
+type PaddingXY = ImVec2
 
 main :: IO ()
 main = do
@@ -34,12 +37,12 @@ main = do
     imguiWindowWidth  = 1280
     imguiWindowHeight = 720
 
-  let padding = 20
+  let paddingXY = ImVec2 20 20
 
-  let cmdInputPos = DearImGui.ImVec2 padding ( imguiWindowHeight - padding - 20 ) -- Guessing inputText height to be 20 for now.
+  let cmdInputPos = ImVec2 ( x paddingXY ) ( imguiWindowHeight - y paddingXY - 20 )  -- Guessing inputText height to be 20 for now.
 
-  imguiWindowSizeRef <- newIORef $ DearImGui.ImVec2 imguiWindowWidth imguiWindowHeight
-  imguiWindowPosRef  <- newIORef $ DearImGui.ImVec2 0 0
+  imguiWindowSizeRef <- newIORef $ ImVec2 imguiWindowWidth imguiWindowHeight
+  imguiWindowPosRef  <- newIORef $ ImVec2 0 0
   cmdInputPosRef     <- newIORef $ cmdInputPos
 
   runManaged do
@@ -65,11 +68,17 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef
+    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef paddingXY
 
 
-mainLoop :: SDL.Window -> ImGuiWindowPosRef -> ImGuiWindowSizeRef -> CmdInputPosRef -> IO ()
-mainLoop window windowPosRef windowSizeRef cmdInputPosRef = do
+mainLoop
+  :: SDL.Window
+  -> ImGuiWindowPosRef
+  -> ImGuiWindowSizeRef
+  -> CmdInputPosRef
+  -> PaddingXY
+  -> IO ()
+mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY = do
   -- Process the event loop
   untilNothingM DearImGui.SDL.pollEventWithImGui
 
@@ -79,8 +88,8 @@ mainLoop window windowPosRef windowSizeRef cmdInputPosRef = do
   DearImGui.newFrame
 
   -- Resize and place ImGui window to fit SDL window.
-  SDL.V2 (CInt windowSizeX) (CInt windowSizeY) <- SDL.get $ SDL.windowSize window
-  writeIORef windowSizeRef $ DearImGui.ImVec2 (fromIntegral windowSizeX) (fromIntegral windowSizeY)
+  SDL.V2 (CInt windowWidth) (CInt windowHeight) <- SDL.get $ SDL.windowSize window
+  writeIORef windowSizeRef $ ImVec2 (fromIntegral windowWidth) (fromIntegral windowHeight)
   DearImGui.setNextWindowSize windowSizeRef DearImGui.ImGuiCond_Always
   DearImGui.setNextWindowPos windowPosRef DearImGui.ImGuiCond_Once Nothing
 
@@ -94,8 +103,10 @@ mainLoop window windowPosRef windowSizeRef cmdInputPosRef = do
       False -> return ()
       True  -> putStrLn "Ow!"
 
+    -- Draw cmd input.
+    let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
+    writeIORef cmdInputPosRef cmdInputPos
     DearImGui.setCursorPos cmdInputPosRef
-
     testRef <- Data.IORef.newIORef "test"
     DearImGui.inputText "Input" testRef 30
 
@@ -110,7 +121,7 @@ mainLoop window windowPosRef windowSizeRef cmdInputPosRef = do
 
   SDL.glSwapWindow window
 
-  mainLoop window windowPosRef windowSizeRef cmdInputPosRef
+  mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
