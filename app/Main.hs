@@ -21,16 +21,26 @@ import           Foreign.C.Types
 import           Foreign.Ptr
 
 
-type ImGuiWindowPos  = IORef DearImGui.ImVec2
-type ImGuiWindowSize = IORef DearImGui.ImVec2
+type ImGuiWindowPosRef  = IORef DearImGui.ImVec2
+type ImGuiWindowSizeRef = IORef DearImGui.ImVec2
+type CmdInputPosRef     = IORef DearImGui.ImVec2
 
 main :: IO ()
 main = do
 
   SDL.initializeAll
 
-  imguiWindowSize <- newIORef $ DearImGui.ImVec2 1280 720
-  imguiWindowPos  <- newIORef $ DearImGui.ImVec2 0 0
+  let
+    imguiWindowWidth  = 1280
+    imguiWindowHeight = 720
+
+  let padding = 20
+
+  let cmdInputPos = DearImGui.ImVec2 padding ( imguiWindowHeight - padding - 20 ) -- Guessing inputText height to be 20 for now.
+
+  imguiWindowSizeRef <- newIORef $ DearImGui.ImVec2 imguiWindowWidth imguiWindowHeight
+  imguiWindowPosRef  <- newIORef $ DearImGui.ImVec2 0 0
+  cmdInputPosRef     <- newIORef $ cmdInputPos
 
   runManaged do
     -- Create a window using SDL. As we're using OpenGL, we need to enable OpenGL too.
@@ -55,11 +65,11 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    liftIO $ mainLoop window imguiWindowPos imguiWindowSize
+    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef
 
 
-mainLoop :: SDL.Window -> ImGuiWindowPos -> ImGuiWindowSize -> IO ()
-mainLoop window windowPos windowSize = do
+mainLoop :: SDL.Window -> ImGuiWindowPosRef -> ImGuiWindowSizeRef -> CmdInputPosRef -> IO ()
+mainLoop window windowPosRef windowSizeRef cmdInputPosRef = do
   -- Process the event loop
   untilNothingM DearImGui.SDL.pollEventWithImGui
 
@@ -70,12 +80,12 @@ mainLoop window windowPos windowSize = do
 
   -- Resize and place ImGui window to fit SDL window.
   SDL.V2 (CInt windowSizeX) (CInt windowSizeY) <- SDL.get $ SDL.windowSize window
-  writeIORef windowSize $ DearImGui.ImVec2 (fromIntegral windowSizeX) (fromIntegral windowSizeY)
-  DearImGui.setNextWindowSize windowSize DearImGui.ImGuiCond_Always
-  DearImGui.setNextWindowPos windowPos DearImGui.ImGuiCond_Once Nothing
+  writeIORef windowSizeRef $ DearImGui.ImVec2 (fromIntegral windowSizeX) (fromIntegral windowSizeY)
+  DearImGui.setNextWindowSize windowSizeRef DearImGui.ImGuiCond_Always
+  DearImGui.setNextWindowPos windowPosRef DearImGui.ImGuiCond_Once Nothing
 
   -- Build window, add widgets.
-  bracket_ ( DearImGui.begin "Hello, ImGui!" ) DearImGui.end do
+  bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
     -- Add a text widget
     DearImGui.text "Hello, ImGui!"
 
@@ -83,6 +93,8 @@ mainLoop window windowPos windowSize = do
     DearImGui.button "Clickety Click" >>= \case
       False -> return ()
       True  -> putStrLn "Ow!"
+
+    DearImGui.setCursorPos cmdInputPosRef
 
     testRef <- Data.IORef.newIORef "test"
     DearImGui.inputText "Input" testRef 30
@@ -98,7 +110,7 @@ mainLoop window windowPos windowSize = do
 
   SDL.glSwapWindow window
 
-  mainLoop window windowPos windowSize
+  mainLoop window windowPosRef windowSizeRef cmdInputPosRef
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
