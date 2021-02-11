@@ -18,6 +18,7 @@ import           DearImGui.SDL.OpenGL ( sdl2InitForOpenGL )
 import qualified Graphics.GL
 import qualified SDL
 import qualified SDL.Event as SDL
+import qualified SDL.Input as SDL
 
 import           Foreign.C.Types
 import           Foreign.Ptr
@@ -95,7 +96,22 @@ mainLoop
 
   let eventPayloads = SDL.eventPayload <$> events
 
-  let shouldQuit = any ( == SDL.QuitEvent ) eventPayloads
+  let isKeyPressed :: SDL.Keycode -> SDL.EventPayload -> Bool
+      isKeyPressed keyCode evPayload =
+        case evPayload of
+          SDL.KeyboardEvent kbEvData ->
+            if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode then True
+            else False
+
+          _ -> False
+
+  let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
+      shouldSubmitCmd   = any ( isKeyPressed SDL.KeycodeReturn ) eventPayloads
+
+  if shouldSubmitCmd then
+    putStrLn "cmd"
+  else
+    return ()
 
   -- Tell ImGui we're starting a new frame
   openGL2NewFrame
