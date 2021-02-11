@@ -25,6 +25,7 @@ import           Foreign.Ptr
 type ImGuiWindowPosRef  = IORef ImVec2
 type ImGuiWindowSizeRef = IORef ImVec2
 type CmdInputPosRef     = IORef ImVec2
+type CmdInputRef        = IORef String
 
 type PaddingXY = ImVec2
 
@@ -44,6 +45,7 @@ main = do
   imguiWindowSizeRef <- newIORef $ ImVec2 imguiWindowWidth imguiWindowHeight
   imguiWindowPosRef  <- newIORef $ ImVec2 0 0
   cmdInputPosRef     <- newIORef $ cmdInputPos
+  cmdInputRef        <- newIORef $ ""
 
   runManaged do
     -- Create a window using SDL. As we're using OpenGL, we need to enable OpenGL too.
@@ -68,7 +70,7 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef paddingXY
+    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY
 
 
 mainLoop
@@ -76,9 +78,17 @@ mainLoop
   -> ImGuiWindowPosRef
   -> ImGuiWindowSizeRef
   -> CmdInputPosRef
+  -> CmdInputRef
   -> PaddingXY
   -> IO ()
-mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY = do
+mainLoop
+  window
+  windowPosRef
+  windowSizeRef
+  cmdInputPosRef
+  cmdInputRef
+  paddingXY
+  = do
   -- Process the event loop
   untilNothingM DearImGui.SDL.pollEventWithImGui
 
@@ -107,8 +117,7 @@ mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY = do
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
     writeIORef cmdInputPosRef cmdInputPos
     DearImGui.setCursorPos cmdInputPosRef
-    testRef <- Data.IORef.newIORef "test"
-    DearImGui.inputText "Input" testRef 30
+    DearImGui.inputText "Input" cmdInputRef 30
 
   -- Show the ImGui demo window
   DearImGui.showDemoWindow
@@ -121,7 +130,7 @@ mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY = do
 
   SDL.glSwapWindow window
 
-  mainLoop window windowPosRef windowSizeRef cmdInputPosRef paddingXY
+  mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
