@@ -17,6 +17,7 @@ import           DearImGui.SDL ( sdl2Shutdown, sdl2NewFrame )
 import           DearImGui.SDL.OpenGL ( sdl2InitForOpenGL )
 import qualified Graphics.GL
 import qualified SDL
+import qualified SDL.Event as SDL
 
 import           Foreign.C.Types
 import           Foreign.Ptr
@@ -89,8 +90,12 @@ mainLoop
   cmdInputRef
   paddingXY
   = do
-  -- Process the event loop
-  untilNothingM DearImGui.SDL.pollEventWithImGui
+
+  events <- DearImGui.SDL.pollEventsWithImGui
+
+  let eventPayloads = SDL.eventPayload <$> events
+
+  let shouldQuit = any ( == SDL.QuitEvent ) eventPayloads
 
   -- Tell ImGui we're starting a new frame
   openGL2NewFrame
@@ -130,7 +135,10 @@ mainLoop
 
   SDL.glSwapWindow window
 
-  mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY
+  if shouldQuit then
+    return ()
+  else
+    mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
