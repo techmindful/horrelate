@@ -96,20 +96,23 @@ mainLoop
 
   let eventPayloads = SDL.eventPayload <$> events
 
-  let isKeyPressed :: SDL.Keycode -> SDL.EventPayload -> Bool
-      isKeyPressed keyCode evPayload =
+  let isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool
+      isKeyHit keyCode evPayload =
         case evPayload of
           SDL.KeyboardEvent kbEvData ->
-            if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode then True
+            -- True if keycode matches, and key was released.
+            -- TODO: Find out why this seems to return true when key is held.
+            if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode
+              &&                ( SDL.keyboardEventKeyMotion kbEvData ) == SDL.Released then True
             else False
 
           _ -> False
 
   let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
-      shouldSubmitCmd   = any ( isKeyPressed SDL.KeycodeReturn ) eventPayloads
+      shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
 
   if shouldSubmitCmd then
-    putStrLn "cmd"
+    readIORef cmdInputRef >>= putStrLn
   else
     return ()
 
