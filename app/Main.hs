@@ -24,6 +24,31 @@ import           Foreign.C.Types
 import           Foreign.Ptr
 
 
+data Activity = Activity {
+  reg :: Registration
+}
+
+data Registration = Registration {
+    email    :: Email
+  , phoneNum :: PhoneNum
+  , name     :: Name
+  , address  :: Address
+}
+
+newtype Email     = Email String
+newtype PhoneNum  = PhoneNum Int
+data Name         = Name {
+    firstName :: String
+  , midName   :: String
+  , lastName  :: String
+}
+data Address      = Address {
+    street  :: String
+  , apt     :: String
+  , city    :: String
+  , country :: String 
+}
+
 type ImGuiWindowPosRef  = IORef ImVec2
 type ImGuiWindowSizeRef = IORef ImVec2
 type CmdInputPosRef     = IORef ImVec2
