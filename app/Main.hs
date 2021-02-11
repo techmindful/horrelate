@@ -1,6 +1,7 @@
 {-# language BlockArguments #-}
 {-# language LambdaCase #-}
 {-# language OverloadedStrings #-}
+{-# language ScopedTypeVariables #-}
 
 module Main ( main ) where
 
@@ -8,6 +9,7 @@ import           Control.Exception ( bracket, bracket_ )
 import           Control.Monad.IO.Class
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import qualified Data.List.Safe as Safe
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -119,7 +121,7 @@ mainLoop
 
   events <- DearImGui.SDL.pollEventsWithImGui
 
-  let eventPayloads = SDL.eventPayload <$> events
+  cmdInput <- readIORef cmdInputRef
 
   let isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool
       isKeyHit keyCode evPayload =
@@ -133,11 +135,39 @@ mainLoop
 
           _ -> False
 
+  let eventPayloads = SDL.eventPayload <$> events
+  
   let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
       shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
 
-  if shouldSubmitCmd then
-    readIORef cmdInputRef >>= putStrLn
+  let cmdTokens = words cmdInput
+      maybeVerb = Safe.head cmdTokens
+      maybeNoun :: Maybe String = ( Safe.!! ) cmdTokens 1
+
+  if shouldSubmitCmd then do
+    case maybeVerb of
+      Nothing ->
+        putStrLn "Error: Empty command."  -- TODO: Print to GUI.
+
+      Just verb ->
+        case verb of
+          "add" ->
+            case maybeNoun of
+              Nothing ->
+                putStrLn "Error: Adding what?"
+
+              Just noun ->
+                putStrLn $ "Adding " ++ noun
+
+          "edit" ->
+            putStrLn "Editing"
+
+          "del" ->
+            putStrLn "Deleting"
+
+          _ ->
+            putStrLn "Error: Unknown command."
+
   else
     return ()
 

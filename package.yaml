@@ -41,6 +41,7 @@ executables:
     - gl
     - sdl2
     - managed
+    - listsafe
 
 tests:
   horrelate-test:
