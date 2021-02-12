@@ -1,16 +1,10 @@
 {-# language BlockArguments #-}
-{-# language LambdaCase #-}
 {-# language OverloadedStrings #-}
 
 module Main ( main ) where
 
 import           Types
-import           ParseCmd
-
-import           Control.Exception ( bracket, bracket_ )
-import           Control.Monad.IO.Class
-import           Control.Monad.Managed ( runManaged, managed, managed_ )
-import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import           MainLoop ( mainLoop )
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -23,16 +17,10 @@ import qualified SDL
 import qualified SDL.Event as SDL
 import qualified SDL.Input as SDL
 
-import           Foreign.C.Types
-import           Foreign.Ptr
-
-
-type ImGuiWindowPosRef  = IORef ImVec2
-type ImGuiWindowSizeRef = IORef ImVec2
-type CmdInputPosRef     = IORef ImVec2
-type CmdInputRef        = IORef String
-
-type PaddingXY = ImVec2
+import           Control.Exception ( bracket, bracket_ )
+import           Control.Monad.IO.Class
+import           Control.Monad.Managed ( runManaged, managed, managed_ )
+import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
 
 main :: IO ()
@@ -78,100 +66,3 @@ main = do
 
     liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY
 
-
-mainLoop
-  :: SDL.Window
-  -> ImGuiWindowPosRef
-  -> ImGuiWindowSizeRef
-  -> CmdInputPosRef
-  -> CmdInputRef
-  -> PaddingXY
-  -> IO ()
-mainLoop
-  window
-  windowPosRef
-  windowSizeRef
-  cmdInputPosRef
-  cmdInputRef
-  paddingXY
-  = do
-
-  events <- DearImGui.SDL.pollEventsWithImGui
-
-  cmdInput <- readIORef cmdInputRef
-
-  let isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool
-      isKeyHit keyCode evPayload =
-        case evPayload of
-          SDL.KeyboardEvent kbEvData ->
-            -- True if keycode matches, and key was released.
-            -- TODO: Find out why this seems to return true when key is held.
-            if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode
-              &&                ( SDL.keyboardEventKeyMotion kbEvData ) == SDL.Released then True
-            else False
-
-          _ -> False
-
-  let eventPayloads = SDL.eventPayload <$> events
-  
-  let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
-      shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
-
-  if shouldSubmitCmd then do
-    case parseCmd cmdInput of
-      Left errStr ->
-        putStrLn errStr
-
-      Right ( Add str ) ->
-        putStrLn $ "Adding " ++ str 
-
-      Right Quit ->
-        putStrLn "Quitting"
-  else
-    return ()
-
-  -- Tell ImGui we're starting a new frame
-  openGL2NewFrame
-  sdl2NewFrame window
-  DearImGui.newFrame
-
-  -- Resize and place ImGui window to fit SDL window.
-  SDL.V2 (CInt windowWidth) (CInt windowHeight) <- SDL.get $ SDL.windowSize window
-  writeIORef windowSizeRef $ ImVec2 (fromIntegral windowWidth) (fromIntegral windowHeight)
-  DearImGui.setNextWindowSize windowSizeRef DearImGui.ImGuiCond_Always
-  DearImGui.setNextWindowPos windowPosRef DearImGui.ImGuiCond_Once Nothing
-
-  -- Build window, add widgets.
-  bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
-    -- Add a text widget
-    DearImGui.text "Hello, ImGui!"
-
-    -- Add a button widget, and call 'putStrLn' when it's clicked
-    DearImGui.button "Clickety Click" >>= \case
-      False -> return ()
-      True  -> putStrLn "Ow!"
-
-    -- Draw cmd input.
-    let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
-    writeIORef cmdInputPosRef cmdInputPos
-    DearImGui.setCursorPos cmdInputPosRef
-    DearImGui.inputText "Input" cmdInputRef 30
-
-  -- Show the ImGui demo window
-  DearImGui.showDemoWindow
-
-  -- Render
-  Graphics.GL.glClear Graphics.GL.GL_COLOR_BUFFER_BIT
-
-  DearImGui.render
-  openGL2RenderDrawData =<< DearImGui.getDrawData
-
-  SDL.glSwapWindow window
-
-  if shouldQuit then
-    return ()
-  else
-    mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY
-
-  where
-    untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)

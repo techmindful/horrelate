@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9519cabfbe597838a1abc2269b22f82e8c1c554c520049c878dd45cd505292a
+-- hash: 130fbb6e89b9336f12561f4330ed0edf3128b6e7f6b50dc325bd243f96deb0c0
 
 name:           horrelate
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      MainLoop
       ParseCmd
       Types
   other-modules:
@@ -35,8 +36,11 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , dear-imgui
     , errors >=2.3.0
+    , gl
     , listsafe
+    , sdl2
   default-language: Haskell2010
 
 executable horrelate-exe

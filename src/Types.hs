@@ -1,5 +1,9 @@
 module Types where
 
+import           DearImGui ( ImVec2(..) )
+
+import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+
 
 data Activity = Activity {
   reg :: Registration
@@ -30,3 +34,10 @@ data Command
   = Add String
   | Quit
 
+
+type ImGuiWindowPosRef  = IORef ImVec2
+type ImGuiWindowSizeRef = IORef ImVec2
+type CmdInputPosRef     = IORef ImVec2
+type CmdInputRef        = IORef String
+
+type PaddingXY = ImVec2

@@ -27,6 +27,9 @@ library:
   dependencies:
   - listsafe
   - errors >= 2.3.0
+  - dear-imgui
+  - gl
+  - sdl2
 
 executables:
   horrelate-exe:
