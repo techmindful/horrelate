@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e2e476242145e8a2f64a1c3fe26287d38224e6365bbfbb9b17646084ee53db78
+-- hash: e9519cabfbe597838a1abc2269b22f82e8c1c554c520049c878dd45cd505292a
 
 name:           horrelate
 version:        0.1.0.0
@@ -27,13 +27,16 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      ParseCmd
+      Types
   other-modules:
       Paths_horrelate
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , errors >=2.3.0
+    , listsafe
   default-language: Haskell2010
 
 executable horrelate-exe
@@ -46,10 +49,8 @@ executable horrelate-exe
   build-depends:
       base >=4.7 && <5
     , dear-imgui
-    , errors >=2.3.0
     , gl
     , horrelate
-    , listsafe
     , managed
     , sdl2
     , vulkan

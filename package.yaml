@@ -24,6 +24,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - listsafe
+  - errors >= 2.3.0
 
 executables:
   horrelate-exe:
@@ -41,8 +44,6 @@ executables:
     - gl
     - sdl2
     - managed
-    - listsafe
-    - errors >= 2.3.0
 
 tests:
   horrelate-test:

@@ -1,17 +1,16 @@
 {-# language BlockArguments #-}
 {-# language LambdaCase #-}
 {-# language OverloadedStrings #-}
-{-# language ScopedTypeVariables #-}
 
 module Main ( main ) where
+
+import           Types
+import           ParseCmd
 
 import           Control.Exception ( bracket, bracket_ )
 import           Control.Monad.IO.Class
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
-import qualified Data.List.Safe as Safe
-import           Data.Function ( (&) )
-import           Control.Error.Util ( note )
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -28,41 +27,13 @@ import           Foreign.C.Types
 import           Foreign.Ptr
 
 
-data Activity = Activity {
-  reg :: Registration
-}
-
-data Registration = Registration {
-    email    :: Email
-  , phoneNum :: PhoneNum
-  , name     :: Name
-  , address  :: Address
-}
-
-newtype Email     = Email String
-newtype PhoneNum  = PhoneNum Int
-data Name         = Name {
-    firstName :: String
-  , midName   :: String
-  , lastName  :: String
-}
-data Address      = Address {
-    street  :: String
-  , apt     :: String
-  , city    :: String
-  , country :: String 
-}
-
-data Command
-  = Add String
-  | Quit
-
 type ImGuiWindowPosRef  = IORef ImVec2
 type ImGuiWindowSizeRef = IORef ImVec2
 type CmdInputPosRef     = IORef ImVec2
 type CmdInputRef        = IORef String
 
 type PaddingXY = ImVec2
+
 
 main :: IO ()
 main = do
@@ -145,24 +116,6 @@ mainLoop
   
   let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
       shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
-
-  let parseCmd :: String -> Either String Command
-      parseCmd str =
-        let cmdTokens = words cmdInput
-            maybeVerb = Safe.head cmdTokens
-            maybeNoun :: Maybe String = ( Safe.!! ) cmdTokens 1
-        in do
-          verb <- maybeVerb & note "Error: Empty input."
-          case verb of
-            "add" -> do
-              noun <- maybeNoun & note "Error: \"add\" requires a noun."
-              return $ Add noun
-
-            "quit" ->
-              return Quit
-
-            _ ->
-              Left "Error: Unknown command."
 
   if shouldSubmitCmd then do
     case parseCmd cmdInput of
