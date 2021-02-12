@@ -42,6 +42,7 @@ executables:
     - sdl2
     - managed
     - listsafe
+    - errors >= 2.3.0
 
 tests:
   horrelate-test:

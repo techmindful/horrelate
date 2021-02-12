@@ -10,6 +10,8 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 import qualified Data.List.Safe as Safe
+import           Data.Function ( (&) )
+import           Control.Error.Util ( note )
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -50,6 +52,10 @@ data Address      = Address {
   , city    :: String
   , country :: String 
 }
+
+data Command
+  = Add String
+  | Quit
 
 type ImGuiWindowPosRef  = IORef ImVec2
 type ImGuiWindowSizeRef = IORef ImVec2
@@ -140,34 +146,34 @@ mainLoop
   let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
       shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
 
-  let cmdTokens = words cmdInput
-      maybeVerb = Safe.head cmdTokens
-      maybeNoun :: Maybe String = ( Safe.!! ) cmdTokens 1
+  let parseCmd :: String -> Either String Command
+      parseCmd str =
+        let cmdTokens = words cmdInput
+            maybeVerb = Safe.head cmdTokens
+            maybeNoun :: Maybe String = ( Safe.!! ) cmdTokens 1
+        in do
+          verb <- maybeVerb & note "Error: Empty input."
+          case verb of
+            "add" -> do
+              noun <- maybeNoun & note "Error: \"add\" requires a noun."
+              return $ Add noun
+
+            "quit" ->
+              return Quit
+
+            _ ->
+              Left "Error: Unknown command."
 
   if shouldSubmitCmd then do
-    case maybeVerb of
-      Nothing ->
-        putStrLn "Error: Empty command."  -- TODO: Print to GUI.
+    case parseCmd cmdInput of
+      Left errStr ->
+        putStrLn errStr
 
-      Just verb ->
-        case verb of
-          "add" ->
-            case maybeNoun of
-              Nothing ->
-                putStrLn "Error: Adding what?"
+      Right ( Add str ) ->
+        putStrLn $ "Adding " ++ str 
 
-              Just noun ->
-                putStrLn $ "Adding " ++ noun
-
-          "edit" ->
-            putStrLn "Editing"
-
-          "del" ->
-            putStrLn "Deleting"
-
-          _ ->
-            putStrLn "Error: Unknown command."
-
+      Right Quit ->
+        putStrLn "Quitting"
   else
     return ()
 
