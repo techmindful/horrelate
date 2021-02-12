@@ -33,6 +33,7 @@ data Address      = Address {
 data Command
   = Add String
   | Quit
+  deriving ( Eq, Show )
 
 
 type ImGuiWindowPosRef  = IORef ImVec2

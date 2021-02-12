@@ -45,23 +45,20 @@ mainLoop
 
   cmdInput <- readIORef cmdInputRef
 
-  let isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool
-      isKeyHit keyCode evPayload =
-        case evPayload of
-          SDL.KeyboardEvent kbEvData ->
-            -- True if keycode matches, and key was released.
-            -- TODO: Find out why this seems to return true when key is held.
-            if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode
-              &&                ( SDL.keyboardEventKeyMotion kbEvData ) == SDL.Released then True
-            else False
+  let
+    eventPayloads = SDL.eventPayload <$> events
 
-          _ -> False
+    shouldSubmitCmd = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
 
-  let eventPayloads = SDL.eventPayload <$> events
+    eitherCmd :: Either String Command
+    eitherCmd = parseCmd cmdInput
   
-  let shouldQuit        = any ( == SDL.QuitEvent ) eventPayloads
-      shouldSubmitCmd   = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
+    -- App should quit if there's an SDL.QuitEvent,
+    -- Or user submitted a Quit command.
+    shouldQuit = any ( == SDL.QuitEvent ) eventPayloads
+              || ( eitherCmd == Right Quit && shouldSubmitCmd )
 
+  -- Process user command.
   if shouldSubmitCmd then do
     case parseCmd cmdInput of
       Left errStr ->
@@ -120,3 +117,16 @@ mainLoop
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
+
+
+isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool
+isKeyHit keyCode evPayload =
+  case evPayload of
+    SDL.KeyboardEvent kbEvData ->
+      -- True if keycode matches, and key was released.
+      -- TODO: Find out why this seems to return true when key is held.
+      if ( SDL.keysymKeycode $ SDL.keyboardEventKeysym kbEvData ) == keyCode
+        &&                ( SDL.keyboardEventKeyMotion kbEvData ) == SDL.Released then True
+      else False
+
+    _ -> False
