@@ -25,11 +25,13 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - listsafe
-  - errors >= 2.3.0
   - dear-imgui
   - gl
   - sdl2
+  - aeson >= 1.5.5.1
+  - listsafe
+  - errors >= 2.3.0
+  - bytestring >= 0.10.12.0
 
 executables:
   horrelate-exe:

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 130fbb6e89b9336f12561f4330ed0edf3128b6e7f6b50dc325bd243f96deb0c0
+-- hash: 9e56ed8479d56f027052116ef34bdefdf1c1f4b1a691e6e98232281797851018
 
 name:           horrelate
 version:        0.1.0.0
@@ -35,7 +35,9 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson >=1.5.5.1
+    , base >=4.7 && <5
+    , bytestring >=0.10.12.0
     , dear-imgui
     , errors >=2.3.0
     , gl

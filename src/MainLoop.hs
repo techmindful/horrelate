@@ -64,8 +64,8 @@ mainLoop
       Left errStr ->
         putStrLn errStr
 
-      Right ( Add str ) ->
-        putStrLn $ "Adding " ++ str 
+      Right ( Add activity ) ->
+        putStrLn $ "Adding " ++ show activity
 
       Right Quit ->
         putStrLn "Quitting"
@@ -97,7 +97,7 @@ mainLoop
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
     writeIORef cmdInputPosRef cmdInputPos
     DearImGui.setCursorPos cmdInputPosRef
-    DearImGui.inputText "Input" cmdInputRef 30
+    DearImGui.inputText "Input" cmdInputRef 512
 
   -- Show the ImGui demo window
   DearImGui.showDemoWindow
