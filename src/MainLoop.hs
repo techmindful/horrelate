@@ -64,8 +64,8 @@ mainLoop
       Left errStr ->
         putStrLn errStr
 
-      Right ( Add activity ) ->
-        putStrLn $ "Adding " ++ show activity
+      Right Add ->
+        putStrLn $ "Adding"
 
       Right Quit ->
         putStrLn "Quitting"

@@ -47,7 +47,7 @@ data Address      = Address {
 instance FromJSON Address
 
 data Command
-  = Add Activity
+  = Add
   | Quit
   deriving ( Eq, Show )
 

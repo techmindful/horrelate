@@ -20,9 +20,9 @@ parseCmd str =
     verb <- maybeVerb & note "Error: Empty input."
     case verb of
       "add" -> do
-        noun <- maybeNoun & note "Error: \"add\" requires a noun."
-        activity <- Aeson.decode ( pack noun ) & note "Error: \"add\" needs a noun that is a JSON string of type Activity."
-        return $ Add activity
+        --noun <- maybeNoun & note "Error: \"add\" requires a noun."
+        --activity <- Aeson.decode ( pack noun ) & note "Error: \"add\" needs a noun that is a JSON string of type Activity."
+        return $ Add
 
       "quit" ->
         return Quit
