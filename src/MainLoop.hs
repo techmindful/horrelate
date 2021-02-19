@@ -65,13 +65,23 @@ mainLoop
       Left errStr ->
         liftIO $ putStrLn errStr
 
-      Right Add ->
-        liftIO $ putStrLn $ "Adding"
+      Right Add -> do
+        let newActivity = Activity {
+          reg = Registration {
+            email = "Test"
+          , phoneNum = 123
+          }
+        }
+        modify (\activities -> newActivity : activities)
 
       Right Quit ->
         liftIO $ putStrLn "Quitting"
   else
     return ()
+
+
+  activities <- get
+
 
   -- Tell ImGui we're starting a new frame
   openGL2NewFrame
@@ -93,6 +103,9 @@ mainLoop
     DearImGui.button "Clickety Click" >>= \case
       False -> return ()
       True  -> putStrLn "Ow!"
+
+    let drawActivity act = DearImGui.text $ email (reg act)
+    mapM drawActivity activities
 
     -- Draw cmd input.
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
