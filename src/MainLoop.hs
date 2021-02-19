@@ -21,6 +21,7 @@ import           Control.Exception ( bracket, bracket_ )
 import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import           Data.Function ( (&) )
 
 import           Foreign.C.Types
 import           Foreign.Ptr
@@ -32,7 +33,7 @@ mainLoop
   -> CmdInputPosRef
   -> CmdInputRef
   -> PaddingXY
-  -> StateT [Activity] IO ()
+  -> StateT [Node] IO ()
 mainLoop
   window
   windowPosRef
@@ -72,7 +73,11 @@ mainLoop
           , phoneNum = 123
           }
         }
-        modify (\activities -> newActivity : activities)
+        let newNode = Node {
+          drawPos  = ImVec2 100 100
+        , activity = newActivity
+        }
+        modify (\nodes -> newNode : nodes)
 
       Right Quit ->
         liftIO $ putStrLn "Quitting"
@@ -80,7 +85,7 @@ mainLoop
     return ()
 
 
-  activities <- get
+  nodes <- get
 
 
   -- Tell ImGui we're starting a new frame
@@ -104,8 +109,12 @@ mainLoop
       False -> return ()
       True  -> putStrLn "Ow!"
 
-    let drawActivity act = DearImGui.text $ email (reg act)
-    mapM drawActivity activities
+    let
+      drawNode node = do
+        drawPosRef <- newIORef $ node & drawPos
+        DearImGui.setCursorPos $ drawPosRef
+        DearImGui.text $ node & activity & reg & email
+    mapM drawNode nodes
 
     -- Draw cmd input.
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )

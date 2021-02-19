@@ -46,6 +46,11 @@ data Address      = Address {
 } deriving ( Eq, Show, Generic )
 instance FromJSON Address
 
+data Node = Node {
+  activity :: Activity
+, drawPos  :: ImVec2
+}
+
 data Command
   = Add
   | Quit
