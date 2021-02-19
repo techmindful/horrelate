@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9e56ed8479d56f027052116ef34bdefdf1c1f4b1a691e6e98232281797851018
+-- hash: 62c75e6339a07d44459dcb53f4a02dc9f008ba26f4af81c0bb45f856d07aca74
 
 name:           horrelate
 version:        0.1.0.0
@@ -42,6 +42,7 @@ library
     , errors >=2.3.0
     , gl
     , listsafe
+    , mtl >=2.2.2
     , sdl2
   default-language: Haskell2010
 
@@ -58,6 +59,7 @@ executable horrelate-exe
     , gl
     , horrelate
     , managed
+    , mtl >=2.2.2
     , sdl2
     , vulkan
     , vulkan-utils

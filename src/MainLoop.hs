@@ -6,10 +6,6 @@ module MainLoop ( mainLoop ) where
 import           Types
 import           ParseCmd ( parseCmd )
 
-import           Control.Exception ( bracket, bracket_ )
-import           Control.Monad.IO.Class
-import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
-
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
 import           DearImGui.OpenGL2 ( openGL2Init, openGL2Shutdown, openGL2NewFrame, openGL2RenderDrawData )
@@ -21,6 +17,11 @@ import qualified SDL
 import qualified SDL.Event as SDL
 import qualified SDL.Input as SDL
 
+import           Control.Exception ( bracket, bracket_ )
+import           Control.Monad.IO.Class
+import           Control.Monad.State
+import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+
 import           Foreign.C.Types
 import           Foreign.Ptr
 
@@ -31,7 +32,7 @@ mainLoop
   -> CmdInputPosRef
   -> CmdInputRef
   -> PaddingXY
-  -> IO ()
+  -> StateT [Activity] IO ()
 mainLoop
   window
   windowPosRef
@@ -43,7 +44,7 @@ mainLoop
 
   events <- DearImGui.SDL.pollEventsWithImGui
 
-  cmdInput <- readIORef cmdInputRef
+  cmdInput <- liftIO $ readIORef cmdInputRef
 
   let
     eventPayloads = SDL.eventPayload <$> events
@@ -62,13 +63,13 @@ mainLoop
   if shouldSubmitCmd then do
     case parseCmd cmdInput of
       Left errStr ->
-        putStrLn errStr
+        liftIO $ putStrLn errStr
 
       Right Add ->
-        putStrLn $ "Adding"
+        liftIO $ putStrLn $ "Adding"
 
       Right Quit ->
-        putStrLn "Quitting"
+        liftIO $ putStrLn "Quitting"
   else
     return ()
 
@@ -79,12 +80,12 @@ mainLoop
 
   -- Resize and place ImGui window to fit SDL window.
   SDL.V2 (CInt windowWidth) (CInt windowHeight) <- SDL.get $ SDL.windowSize window
-  writeIORef windowSizeRef $ ImVec2 (fromIntegral windowWidth) (fromIntegral windowHeight)
+  liftIO $ writeIORef windowSizeRef $ ImVec2 (fromIntegral windowWidth) (fromIntegral windowHeight)
   DearImGui.setNextWindowSize windowSizeRef DearImGui.ImGuiCond_Always
   DearImGui.setNextWindowPos windowPosRef DearImGui.ImGuiCond_Once Nothing
 
   -- Build window, add widgets.
-  bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
+  liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
     -- Add a text widget
     DearImGui.text "Hello, ImGui!"
 

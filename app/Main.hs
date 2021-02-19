@@ -19,6 +19,7 @@ import qualified SDL.Input as SDL
 
 import           Control.Exception ( bracket, bracket_ )
 import           Control.Monad.IO.Class
+import           Control.Monad.State
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
@@ -64,5 +65,7 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    liftIO $ mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY
+    (_, _) <- liftIO $ runStateT (mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY) []
+
+    return ()
 
