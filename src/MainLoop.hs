@@ -1,5 +1,6 @@
 {-# language BlockArguments #-}
 {-# language LambdaCase #-}
+{-# language FlexibleContexts #-}
 
 module MainLoop ( mainLoop ) where
 
@@ -33,7 +34,7 @@ mainLoop
   -> CmdInputPosRef
   -> CmdInputRef
   -> PaddingXY
-  -> StateT [Node] IO ()
+  -> StateT [IORef String] IO ()
 mainLoop
   window
   windowPosRef
@@ -77,6 +78,7 @@ mainLoop
           drawPos  = ImVec2 100 100
         , activity = newActivity
         }
+        newNode <- liftIO $ newIORef "Test email"
         modify (\nodes -> newNode : nodes)
 
       Right Quit ->
@@ -110,11 +112,15 @@ mainLoop
       True  -> putStrLn "Ow!"
 
     let
-      drawNode node = do
-        drawPosRef <- newIORef $ node & drawPos
-        DearImGui.setCursorPos $ drawPosRef
-        DearImGui.text $ node & activity & reg & email
-    mapM drawNode nodes
+      drawNode :: IORef String -> Int -> IO Bool
+      drawNode nodeRef n = do
+        --drawPosRef <- newIORef $ node & drawPos
+        --DearImGui.setCursorPos $ drawPosRef
+        --DearImGui.text $ node & activity & reg & email
+
+        -- Important: Widget names need to be different. Otherwise they entangle.
+        DearImGui.inputText ("Node" ++ show n) nodeRef 64
+    sequence_ $ zipWith drawNode nodes [1..]
 
     -- Draw cmd input.
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
@@ -135,8 +141,9 @@ mainLoop
 
   if shouldQuit then
     return ()
-  else
-    mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY
+  else do
+    (_, _) <- liftIO $ runStateT (mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY) nodes
+    return ()
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
