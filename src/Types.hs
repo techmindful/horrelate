@@ -11,7 +11,10 @@ import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
 
 data AppState = AppState {
-  cursorPosRef :: IORef ImVec2
+  -- Data
+  allActivityNames :: [ String ]
+  -- View
+, cursorPosRef :: IORef ImVec2
 , activityListBoxCurrentItemRef :: IORef Int
 }
 
