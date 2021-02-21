@@ -65,7 +65,14 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    (_, _) <- liftIO $ runStateT (mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY) []
+    -- TODO: Properly init app state.
+    newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
+    newActivityListBoxCurrentItemRef <- liftIO $ newIORef 0
+    let initAppState = AppState {
+      cursorPosRef = newCursorPosRef
+    , activityListBoxCurrentItemRef = newActivityListBoxCurrentItemRef
+    }
+    (_, _) <- liftIO $ runStateT (mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY) initAppState
 
     return ()
 

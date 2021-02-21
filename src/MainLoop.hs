@@ -27,6 +27,10 @@ import           Data.Function ( (&) )
 import           Foreign.C.Types
 import           Foreign.Ptr
 
+
+overviewPanelPos =
+  ImVec2 720 0
+
 mainLoop
   :: SDL.Window
   -> ImGuiWindowPosRef
@@ -34,7 +38,7 @@ mainLoop
   -> CmdInputPosRef
   -> CmdInputRef
   -> PaddingXY
-  -> StateT [IORef String] IO ()
+  -> StateT AppState IO ()
 mainLoop
   window
   windowPosRef
@@ -78,8 +82,9 @@ mainLoop
           drawPos  = ImVec2 100 100
         , activity = newActivity
         }
-        newNode <- liftIO $ newIORef "Test email"
-        modify (\nodes -> newNode : nodes)
+        return ()
+        --newNode <- liftIO $ newIORef "Test email"
+        --modify (\nodes -> newNode : nodes)
 
       Right Quit ->
         liftIO $ putStrLn "Quitting"
@@ -87,7 +92,7 @@ mainLoop
     return ()
 
 
-  nodes <- get
+  appState <- get
 
 
   -- Tell ImGui we're starting a new frame
@@ -103,13 +108,8 @@ mainLoop
 
   -- Build window, add widgets.
   liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
-    -- Add a text widget
-    DearImGui.text "Hello, ImGui!"
 
-    -- Add a button widget, and call 'putStrLn' when it's clicked
-    DearImGui.button "Clickety Click" >>= \case
-      False -> return ()
-      True  -> putStrLn "Ow!"
+    runStateT drawOverviewPanel appState
 
     let
       drawNode :: IORef String -> Int -> IO Bool
@@ -122,7 +122,7 @@ mainLoop
         DearImGui.inputText ("Node" ++ show n) nodeRef 64
 
     DearImGui.pushItemWidth 30
-    sequence_ $ zipWith drawNode nodes [1..]
+    --sequence_ $ zipWith drawNode nodes [1..]
     DearImGui.popItemWidth
 
     -- Draw cmd input.
@@ -145,11 +145,26 @@ mainLoop
   if shouldQuit then
     return ()
   else do
-    (_, _) <- liftIO $ runStateT (mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY) nodes
+    (_, _) <- liftIO $ runStateT (mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY) appState
     return ()
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
+
+
+drawOverviewPanel :: StateT AppState IO ()
+drawOverviewPanel = do
+
+  appState <- get
+
+  let cursorPosRef' = appState & cursorPosRef
+
+  liftIO do
+    writeIORef cursorPosRef' overviewPanelPos  -- Do we need to preserve original cursor pos?
+    DearImGui.setCursorPos cursorPosRef'
+    DearImGui.pushItemWidth 100
+    DearImGui.listBox "Activities" (appState & activityListBoxCurrentItemRef) [ "Test1", "Test2", "Test3" ]
+    DearImGui.popItemWidth
 
 
 isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool

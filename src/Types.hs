@@ -10,6 +10,18 @@ import           GHC.Generics
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
 
+data AppState = AppState {
+  cursorPosRef :: IORef ImVec2
+, activityListBoxCurrentItemRef :: IORef Int
+}
+
+
+data Command
+  = Add
+  | Quit
+  deriving ( Eq, Show )
+
+
 data Activity = Activity {
   reg :: Registration
 } deriving ( Eq, Show, Generic )
@@ -50,11 +62,6 @@ data Node = Node {
   activity :: Activity
 , drawPos  :: ImVec2
 }
-
-data Command
-  = Add
-  | Quit
-  deriving ( Eq, Show )
 
 
 type ImGuiWindowPosRef  = IORef ImVec2
