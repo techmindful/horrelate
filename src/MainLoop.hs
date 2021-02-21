@@ -120,7 +120,10 @@ mainLoop
 
         -- Important: Widget names need to be different. Otherwise they entangle.
         DearImGui.inputText ("Node" ++ show n) nodeRef 64
+
+    DearImGui.pushItemWidth 30
     sequence_ $ zipWith drawNode nodes [1..]
+    DearImGui.popItemWidth
 
     -- Draw cmd input.
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
