@@ -43,7 +43,7 @@ drawOverviewPanel = do
 
   let posY_List :: [ Float ] = map fromIntegral [ x | x <- [ 0, 20 .. ] ]
 
-  liftIO do
+  appState' <- liftIO do
 
     wsRef <- newIORef $ overviewPanelSize
 
@@ -51,10 +51,12 @@ drawOverviewPanel = do
     DearImGui.setCursorPos cursorPosRef'
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
-
-    mapM_ (\stateT -> runStateT stateT appState) $ zipWith3 drawActivityName ( appState & allActivityNames ) [0..] posY_List
-
+    appState' <- execStateT ( mapM_ (\stateT -> stateT) $ zipWith3 drawActivityName ( appState & allActivityNames ) [0..] posY_List ) appState
     DearImGui.endChild
+
+    return appState'
+
+  put appState'
 
 
 drawActivityName :: String -> Int -> Float -> StateT AppState IO ()
@@ -76,12 +78,12 @@ drawActivityName name indexInList posY = do
       DearImGui.text name
 
   Utils.setCursorPos' cursorPosRef' editButtonDrawPos
-  DearImGui.button "Edit" >>= \case
-    True -> modify (\appState' -> appState' { editingActivity = Just indexInList })
+  DearImGui.button ( "Edit " ++ show indexInList ) >>= \case
+    True -> put $ appState { editingActivity = Just indexInList }
     False -> return ()
 
   Utils.setCursorPos' cursorPosRef' delButtonDrawPos
-  DearImGui.button "Del" >>= \case
+  DearImGui.button ( "Del " ++ show indexInList ) >>= \case
     True -> return ()
-    False -> return()
+    False -> return ()
 

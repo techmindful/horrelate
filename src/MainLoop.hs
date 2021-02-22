@@ -108,9 +108,9 @@ mainLoop
   DearImGui.setNextWindowPos windowPosRef DearImGui.ImGuiCond_Once Nothing
 
   -- Build window, add widgets.
-  liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
+  appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
-    runStateT drawOverviewPanel appState
+    appState' <- execStateT drawOverviewPanel appState
 
     let
       drawNode :: IORef String -> Int -> IO Bool
@@ -132,6 +132,9 @@ mainLoop
     DearImGui.setCursorPos cmdInputPosRef
     DearImGui.inputText "Input" cmdInputRef 512
 
+    return appState'
+
+
   -- Show the ImGui demo window
   DearImGui.showDemoWindow
 
@@ -146,8 +149,7 @@ mainLoop
   if shouldQuit then
     return ()
   else do
-    (_, _) <- liftIO $ runStateT (mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY) appState
-    return ()
+    liftIO $ evalStateT (mainLoop window windowPosRef windowSizeRef cmdInputPosRef cmdInputRef paddingXY) appState'
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)

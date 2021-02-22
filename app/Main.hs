@@ -68,7 +68,7 @@ main = do
     -- TODO: Properly init app state.
     newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
     let initAppState = AppState {
-      allActivityNames = map (\n -> "Test " ++ show n) [1..50]
+      allActivityNames = map (\n -> "Test " ++ show n) [0..49]
     , cursorPosRef = newCursorPosRef
     , editingActivity = Nothing
     }
