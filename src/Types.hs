@@ -16,6 +16,7 @@ data AppState = AppState {
   -- View
 , cursorPosRef :: IORef ImVec2
 , editingActivity :: Maybe Int
+, activityNameEditRef :: IORef String
 }
 
 
