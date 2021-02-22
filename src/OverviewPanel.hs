@@ -87,7 +87,7 @@ drawActivityName name indexInList posY = do
 
       Utils.setCursorPos' cursorPosRef' cancelButtonPos
       DearImGui.button ( "Cancel " ++ show indexInList ) >>= \case
-        True -> return ()
+        True -> put $ appState { editingActivity = Nothing }
         False -> return ()
 
     _ -> do
@@ -103,6 +103,7 @@ drawActivityName name indexInList posY = do
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
         True -> return ()
         False -> return ()
+
 
 
 
