@@ -101,7 +101,7 @@ drawActivityName name indexInList posY = do
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
-        True -> return ()
+        True -> put $ appState { allActivityNames = filter ( /= name ) ( appState & allActivityNames ) }
         False -> return ()
 
 
