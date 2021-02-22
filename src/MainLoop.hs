@@ -5,8 +5,11 @@
 
 module MainLoop ( mainLoop ) where
 
-import           Types
+import           Consts
+import           OverviewPanel ( drawOverviewPanel )
 import           ParseCmd ( parseCmd )
+import           Types
+import qualified Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -28,11 +31,6 @@ import           Data.Function ( (&) )
 import           Foreign.C.Types
 import           Foreign.Ptr
 
-
-mainWindowHeadingOffset = 20
-
-overviewPanelPos  = ImVec2 720 mainWindowHeadingOffset
-overviewPanelSize = ImVec2 560 300
 
 mainLoop
   :: SDL.Window
@@ -153,39 +151,6 @@ mainLoop
 
   where
     untilNothingM m = m >>= maybe (return ()) (\_ -> untilNothingM m)
-
-
-drawOverviewPanel :: StateT AppState IO ()
-drawOverviewPanel = do
-
-  appState <- get
-
-  let cursorPosRef' = appState & cursorPosRef
-
-  let posY_List :: [ Float ] = map fromIntegral [ x | x <- [ 0, 20 .. ] ]
-
-  let
-    drawActivityName :: String -> Float -> IO ()
-    drawActivityName name posY = do
-      let drawPos = ImVec2 0 posY
-      writeIORef cursorPosRef' drawPos  -- Do we need to preserve original cursor pos?
-      DearImGui.setCursorPos cursorPosRef'
-      DearImGui.text name
-
-
-  liftIO do
-
-    wsRef <- newIORef $ overviewPanelSize
-
-    writeIORef cursorPosRef' overviewPanelPos
-    DearImGui.setCursorPos cursorPosRef'
-
-    DearImGui.beginChildOfSize "Overview Panel" wsRef
-    sequence_ $ zipWith drawActivityName ( appState & allActivityNames ) posY_List
-    --DearImGui.pushItemWidth 100
-    --DearImGui.listBox "Activities" ( appState & activityListBoxCurrentItemRef ) [ "Test1", "Test2", "Test3" ]
-    --DearImGui.popItemWidth
-    DearImGui.endChild
 
 
 isKeyHit :: SDL.Keycode -> SDL.EventPayload -> Bool

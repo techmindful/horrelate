@@ -67,11 +67,10 @@ main = do
 
     -- TODO: Properly init app state.
     newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
-    newActivityListBoxCurrentItemRef <- liftIO $ newIORef 0
     let initAppState = AppState {
       allActivityNames = map (\n -> "Test " ++ show n) [1..50]
     , cursorPosRef = newCursorPosRef
-    , activityListBoxCurrentItemRef = newActivityListBoxCurrentItemRef
+    , editingActivity = Nothing
     }
     (_, _) <- liftIO $ runStateT (mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY) initAppState
 
