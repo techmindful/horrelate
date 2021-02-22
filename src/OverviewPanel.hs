@@ -74,7 +74,6 @@ drawActivityName name indexInList posY = do
   case fmap ( == indexInList ) $ appState & editingActivity of
     Just True -> do
       -- Draw input box.
-      liftIO $ writeIORef ( appState & activityNameEditRef ) ""
       Utils.setCursorPos' cursorPosRef' inputBoxPos
       DearImGui.pushItemWidth 280
       DearImGui.inputText "New Activity?" ( appState & activityNameEditRef ) 128
@@ -82,7 +81,13 @@ drawActivityName name indexInList posY = do
 
       Utils.setCursorPos' cursorPosRef' confirmButtonPos
       DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
-        True -> return ()
+        True -> do
+          newName <- liftIO $ readIORef $ appState & activityNameEditRef
+          put $ appState {
+            allActivityNames = map (\name' -> if name' == name then newName else name') ( appState & allActivityNames )
+          , editingActivity  = Nothing
+          }
+
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' cancelButtonPos
@@ -96,14 +101,14 @@ drawActivityName name indexInList posY = do
 
       Utils.setCursorPos' cursorPosRef' editButtonPos
       DearImGui.button ( "Edit " ++ show indexInList ) >>= \case
-        True -> put $ appState { editingActivity = Just indexInList }
+        True -> do
+          liftIO $ writeIORef ( appState & activityNameEditRef ) ""
+          put $ appState { editingActivity = Just indexInList }
+
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
         True -> put $ appState { allActivityNames = filter ( /= name ) ( appState & allActivityNames ) }
         False -> return ()
-
-
-
 
