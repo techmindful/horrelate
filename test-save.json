@@ -1,0 +1,42 @@
+{
+  "allActivityNames":
+  [
+    "Gmail",
+    "Facebook",
+    "Amazon",
+    "YouTube"
+  ],
+  "nodes":
+  [
+    {
+      "activity":
+      {
+        "reg":
+          {
+            "email": "alice@gmail.com",
+            "phoneNum": 123
+          }
+      },
+      "drawPos":
+      {
+        "x": 3.2,
+        "y": 0.4
+      }
+    },
+    {
+      "activity":
+      {
+        "reg":
+          {
+            "email": "fake1@gmail.com",
+            "phoneNum": 102
+          }
+      },
+      "drawPos":
+      {
+        "x": 2,
+        "y": 30.8
+      }
+    }
+  ]
+}

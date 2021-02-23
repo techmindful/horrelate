@@ -33,8 +33,8 @@ import qualified Data.ByteString.Lazy.Char8 as LzByteStrC8
 main :: IO ()
 main = do
 
-  save <- LzByteStrC8.readFile "test-save.json"
-  let maybeSave :: Maybe ImVec2 = decode save
+  saveRaw <- LzByteStrC8.readFile "test-save.json"
+  let maybeSave :: Maybe Save = decode saveRaw
   maybe ( return () ) ( putStrLn . show ) maybeSave
 
   SDL.initializeAll

@@ -89,7 +89,7 @@ instance FromJSON Node
 data Save = Save {
   allActivityNames :: [ String ]
 , nodes            :: [ Node ]
-} deriving ( Generic )
+} deriving ( Generic, Show )
 instance FromJSON Save
 
 
