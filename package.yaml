@@ -51,6 +51,8 @@ executables:
     - vulkan-utils
     - gl
     - sdl2
+    - aeson >= 1.5.5.1
+    - bytestring >= 0.10.12.0
     - managed
     - mtl >= 2.2.2
     - lens >= 4.19.2

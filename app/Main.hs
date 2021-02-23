@@ -1,6 +1,7 @@
 {-# language BlockArguments #-}
 {-# language OverloadedLabels #-}
 {-# language OverloadedStrings #-}
+{-# language ScopedTypeVariables #-}
 
 module Main ( main ) where
 
@@ -23,12 +24,18 @@ import           Control.Lens ( (^.), (.~), (%~) )
 import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
+import           Data.Aeson
 import           Data.Function ( (&) )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import qualified Data.ByteString.Lazy.Char8 as LzByteStrC8
 
 
 main :: IO ()
 main = do
+
+  save <- LzByteStrC8.readFile "test-save.json"
+  let maybeSave :: Maybe ImVec2 = decode save
+  maybe ( return () ) ( putStrLn . show ) maybeSave
 
   SDL.initializeAll
 
