@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b29cdf8067ea5ad3635ce637104a4b5b948dd76c115dbdbb2158288a442747cb
+-- hash: f367b55fe2d42e0ab0afbfab0433ba8d0f3fcb7eb102d0c2595ec23829c05db0
 
 name:           horrelate
 version:        0.1.0.0
@@ -43,7 +43,9 @@ library
     , bytestring >=0.10.12.0
     , dear-imgui
     , errors >=2.3.0
+    , generic-lens >=2.0.0.0
     , gl
+    , lens >=4.19.2
     , listsafe
     , mtl >=2.2.2
     , sdl2
@@ -61,6 +63,7 @@ executable horrelate-exe
     , dear-imgui
     , gl
     , horrelate
+    , lens >=4.19.2
     , managed
     , mtl >=2.2.2
     , sdl2

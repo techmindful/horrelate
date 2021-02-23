@@ -1,6 +1,7 @@
 {-# language BlockArguments #-}
 {-# language FlexibleContexts #-}
 {-# language LambdaCase #-}
+{-# language OverloadedLabels #-}
 {-# language ScopedTypeVariables #-}
 
 module OverviewPanel ( drawOverviewPanel ) where
@@ -20,10 +21,13 @@ import qualified SDL
 import qualified SDL.Event as SDL
 import qualified SDL.Input as SDL
 
+import           Control.Lens ( (%~) )
 import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 import           Data.Function ( (&) )
+import           Data.Generics.Internal.VL ( (^.), (.~) )
+import           Data.Generics.Product.Fields ( field )
 
 
 overviewPanelPos  = ImVec2 720 mainWindowHeadingOffset
@@ -47,7 +51,7 @@ drawOverviewPanel = do
     DearImGui.setCursorPos cursorPosRef'
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
-    appState' <- execStateT ( sequence_ $ zipWith3 drawActivityName ( appState & allActivityNames ) [0..] posY_List ) appState
+    appState' <- execStateT ( sequence_ $ zipWith3 drawActivityName ( appState ^. #allActivityNames ) [0..] posY_List ) appState
     DearImGui.endChild
 
     return appState'
@@ -83,10 +87,12 @@ drawActivityName name indexInList posY = do
       DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
         True -> do
           newName <- liftIO $ readIORef $ appState & activityNameEditRef
-          put $ appState {
-            allActivityNames = map (\name' -> if name' == name then newName else name') ( appState & allActivityNames )
-          , editingActivity  = Nothing
-          }
+          put $ appState & #allActivityNames %~ map (\name' -> if name' == name then newName else name')
+                         & #editingActivity  .~ Nothing
+          --put $ appState {
+          --  allActivityNames = map (\name' -> if name' == name then newName else name') ( appState & allActivityNames )
+          --, editingActivity  = Nothing
+          --}
 
         False -> return ()
 
@@ -109,6 +115,8 @@ drawActivityName name indexInList posY = do
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
-        True -> put $ appState { allActivityNames = filter ( /= name ) ( appState & allActivityNames ) }
+        True ->
+          put $ appState & #allActivityNames %~ filter ( /= name )
+
         False -> return ()
 

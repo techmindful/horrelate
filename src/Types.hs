@@ -1,4 +1,6 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# language DeriveGeneric #-}
+{-# language DuplicateRecordFields #-}
+{-# language OverloadedLabels #-}
 
 module Types where
 
@@ -6,8 +8,9 @@ import           DearImGui ( ImVec2(..) )
 
 import           Data.Aeson
 
-import           GHC.Generics
+import           Data.Generics.Labels
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import           GHC.Generics
 
 
 data AppState = AppState {
@@ -17,7 +20,7 @@ data AppState = AppState {
 , cursorPosRef :: IORef ImVec2
 , editingActivity :: Maybe Int
 , activityNameEditRef :: IORef String
-}
+} deriving ( Generic )
 
 
 data Command
@@ -62,10 +65,17 @@ data Address      = Address {
 } deriving ( Eq, Show, Generic )
 instance FromJSON Address
 
+
 data Node = Node {
   activity :: Activity
 , drawPos  :: ImVec2
 }
+
+
+data Save = Save {
+  allActivityNames :: [ String ]
+, nodes            :: [ Node ]
+} deriving ( Generic )
 
 
 type ImGuiWindowPosRef  = IORef ImVec2

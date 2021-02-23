@@ -1,4 +1,5 @@
 {-# language BlockArguments #-}
+{-# language OverloadedLabels #-}
 {-# language OverloadedStrings #-}
 
 module Main ( main ) where
@@ -18,9 +19,11 @@ import qualified SDL.Event as SDL
 import qualified SDL.Input as SDL
 
 import           Control.Exception ( bracket, bracket_ )
+import           Control.Lens ( (^.), (.~), (%~) )
 import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
+import           Data.Function ( (&) )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 
 
@@ -68,11 +71,10 @@ main = do
     -- TODO: Properly init app state.
     newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
     newActivityNameEditRef <- liftIO $ newIORef $ ""
-    let initAppState = AppState {
-      allActivityNames = map (\n -> "Test " ++ show n) [0..49]
-    , cursorPosRef = newCursorPosRef
-    , editingActivity = Nothing
-    , activityNameEditRef = newActivityNameEditRef
-    }
+    let initAppState = AppState {} & #allActivityNames .~ map (\n -> "Test " ++ show n) [0..49]
+                                   & #cursorPosRef .~ newCursorPosRef
+                                   & #editingActivity .~ Nothing
+                                   & #activityNameEditRef .~ newActivityNameEditRef
+
     liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
 
