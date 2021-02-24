@@ -23,10 +23,10 @@ instance Show ImVec2 where
 
 data AppState = AppState {
   -- Data
-  allActivityNames :: [ String ]
+  allServiceNames :: [ String ]
   -- View
 , cursorPosRef :: IORef ImVec2
-, editingActivity :: Maybe Int
+, editingActivity :: Maybe String
 , activityNameEditRef :: IORef String
 } deriving ( Generic )
 
@@ -38,14 +38,15 @@ data Command
 
 
 data Activity = Activity {
-  reg :: Registration
+  service :: String
+, reg :: Registration
 } deriving ( Eq, Show, Generic )
 instance FromJSON Activity
 
 
 data Registration = Registration {
     email    :: String
-  , phoneNum :: Int
+  , phoneNum :: String
   --, name     :: Name
   --, address  :: Address
 } deriving ( Eq, Show, Generic )
@@ -87,8 +88,8 @@ instance FromJSON Node
 
 
 data Save = Save {
-  allActivityNames :: [ String ]
-, nodes            :: [ Node ]
+  allServiceNames :: [ String ]
+, nodes           :: [ Node ]
 } deriving ( Generic, Show )
 instance FromJSON Save
 

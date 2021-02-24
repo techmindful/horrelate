@@ -1,5 +1,5 @@
 {
-  "allActivityNames":
+  "allServiceNames":
   [
     "Gmail",
     "Facebook",
@@ -11,10 +11,11 @@
     {
       "activity":
       {
+        "service": "Amazon",
         "reg":
           {
             "email": "alice@gmail.com",
-            "phoneNum": 123
+            "phoneNum": "123"
           }
       },
       "drawPos":
@@ -26,10 +27,11 @@
     {
       "activity":
       {
+        "service": "Facebook",
         "reg":
           {
             "email": "fake1@gmail.com",
-            "phoneNum": 102
+            "phoneNum": "102"
           }
       },
       "drawPos":

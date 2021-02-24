@@ -76,7 +76,7 @@ mainLoop
         let newActivity = Activity {
           reg = Registration {
             email = "Test"
-          , phoneNum = 123
+          , phoneNum = "123"
           }
         }
         let newNode = Node {

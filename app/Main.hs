@@ -75,13 +75,18 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    -- TODO: Properly init app state.
-    newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
-    newActivityNameEditRef <- liftIO $ newIORef $ ""
-    let initAppState = AppState {} & #allActivityNames .~ map (\n -> "Test " ++ show n) [0..49]
-                                   & #cursorPosRef .~ newCursorPosRef
-                                   & #editingActivity .~ Nothing
-                                   & #activityNameEditRef .~ newActivityNameEditRef
+    case maybeSave of
+      Just save -> do
+        newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
+        newActivityNameEditRef <- liftIO $ newIORef $ ""
+        let initAppState = AppState {} & #allServiceNames .~ ( save ^. #allServiceNames )
+                                       & #cursorPosRef .~ newCursorPosRef
+                                       & #editingActivity .~ Nothing
+                                       & #activityNameEditRef .~ newActivityNameEditRef
 
-    liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
+        liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
+
+      _ ->
+        liftIO $ putStrLn "Failed to load save."
+        
 

@@ -51,7 +51,7 @@ drawOverviewPanel = do
     DearImGui.setCursorPos cursorPosRef'
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
-    appState' <- execStateT ( sequence_ $ zipWith3 drawActivityName ( appState ^. #allActivityNames ) [0..] posY_List ) appState
+    appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #allServiceNames ) [0..] posY_List ) appState
     DearImGui.endChild
 
     return appState'
@@ -59,8 +59,8 @@ drawOverviewPanel = do
   put appState'
 
 
-drawActivityName :: String -> Int -> Float -> StateT AppState IO ()
-drawActivityName name indexInList posY = do
+drawServiceName :: String -> Int -> Float -> StateT AppState IO ()
+drawServiceName name indexInList posY = do
 
   appState <- get
 
@@ -75,7 +75,7 @@ drawActivityName name indexInList posY = do
       cancelButtonPos   = delButtonPos
 
   -- Did user click "edit" on this entry?
-  case fmap ( == indexInList ) $ appState & editingActivity of
+  case fmap ( == name ) $ appState & editingActivity of
     Just True -> do
       -- Draw input box.
       Utils.setCursorPos' cursorPosRef' inputBoxPos
@@ -87,10 +87,10 @@ drawActivityName name indexInList posY = do
       DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
         True -> do
           newName <- liftIO $ readIORef $ appState & activityNameEditRef
-          put $ appState & #allActivityNames %~ map (\name' -> if name' == name then newName else name')
+          put $ appState & #allServiceNames %~ map (\name' -> if name' == name then newName else name')
                          & #editingActivity  .~ Nothing
           --put $ appState {
-          --  allActivityNames = map (\name' -> if name' == name then newName else name') ( appState & allActivityNames )
+          --  allServiceNames = map (\name' -> if name' == name then newName else name') ( appState & allServiceNames )
           --, editingActivity  = Nothing
           --}
 
@@ -109,14 +109,14 @@ drawActivityName name indexInList posY = do
       DearImGui.button ( "Edit " ++ show indexInList ) >>= \case
         True -> do
           liftIO $ writeIORef ( appState & activityNameEditRef ) ""
-          put $ appState { editingActivity = Just indexInList }
+          put $ appState { editingActivity = Just name }
 
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
         True ->
-          put $ appState & #allActivityNames %~ filter ( /= name )
+          put $ appState & #allServiceNames %~ filter ( /= name )
 
         False -> return ()
 
