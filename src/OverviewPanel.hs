@@ -47,8 +47,7 @@ drawOverviewPanel = do
 
     wsRef <- newIORef $ overviewPanelSize
 
-    writeIORef cursorPosRef' overviewPanelPos
-    DearImGui.setCursorPos cursorPosRef'
+    Utils.setCursorPos' cursorPosRef' overviewPanelPos
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
     appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #appData . #allServiceNames ) [0..] posY_List ) appState

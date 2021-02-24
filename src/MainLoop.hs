@@ -1,6 +1,7 @@
 {-# language BlockArguments #-}
 {-# language FlexibleContexts #-}
 {-# language LambdaCase #-}
+{-# language OverloadedLabels #-}
 {-# language ScopedTypeVariables #-}
 
 module MainLoop ( mainLoop ) where
@@ -23,10 +24,12 @@ import qualified SDL.Event as SDL
 import qualified SDL.Input as SDL
 
 import           Control.Exception ( bracket, bracket_ )
+import           Control.Lens ( (^.), (.~), (%~) )
 import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 import           Data.Function ( (&) )
+import qualified Data.Map as Map
 
 import           Foreign.C.Types
 import           Foreign.Ptr
@@ -111,6 +114,17 @@ mainLoop
   appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
     appState' <- execStateT drawOverviewPanel appState
+
+    -- All identifiers panel
+    Utils.setCursorPos' ( appState' & cursorPosRef ) ( ImVec2 720 300 )
+    newIORef ( ImVec2 560 300 ) >>= DearImGui.beginChildOfSize "All Identifiers"
+    isComboOpen <- DearImGui.beginCombo "Identifier Type" "Test"
+    case isComboOpen of
+      False -> return ()
+      True  -> do
+        mapM_ DearImGui.selectable $ ( appState' ^. #appData . #allIdentifiers ) & Map.keys
+        DearImGui.endCombo
+    DearImGui.endChild
 
     let
       drawNode :: IORef String -> Int -> IO Bool
