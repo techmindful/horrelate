@@ -6,6 +6,22 @@
     "Amazon",
     "YouTube"
   ],
+  "allIdentifiers":
+  {
+    "email":
+    [
+      "alice@gmail.com",
+      "bob@protonmail.com",
+      "charlie@yahoo.com",
+      "daniel@tutanota.com"
+    ],
+    "phoneNum":
+    [
+      "000-000-0000",
+      "111-111-1111",
+      "222-222-2222"
+    ]
+  },
   "nodes":
   [
     {

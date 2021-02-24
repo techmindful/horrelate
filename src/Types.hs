@@ -12,6 +12,8 @@ import           Data.Aeson
 
 import           Data.Generics.Labels
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
+import qualified Data.Map.Strict as Map
+import           Data.Map.Strict ( Map(..) )
 import           GHC.Generics
 
 
@@ -22,9 +24,9 @@ instance Show ImVec2 where
   show ( ImVec2 { x = x', y = y' } ) = "ImVec2 { x = " ++ show x' ++ ", y = " ++ show y' ++ " }"
 
 data AppState = AppState {
-  -- Data
-  allServiceNames :: [ String ]
-  -- View
+
+  appData :: AppData
+
 , cursorPosRef :: IORef ImVec2
 , editingActivity :: Maybe String
 , activityNameEditRef :: IORef String
@@ -87,11 +89,12 @@ data Node = Node {
 instance FromJSON Node
 
 
-data Save = Save {
+data AppData = AppData {
   allServiceNames :: [ String ]
+, allIdentifiers  :: Map String [ String ]
 , nodes           :: [ Node ]
 } deriving ( Generic, Show )
-instance FromJSON Save
+instance FromJSON AppData
 
 
 type ImGuiWindowPosRef  = IORef ImVec2

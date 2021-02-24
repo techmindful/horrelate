@@ -33,9 +33,9 @@ import qualified Data.ByteString.Lazy.Char8 as LzByteStrC8
 main :: IO ()
 main = do
 
-  saveRaw <- LzByteStrC8.readFile "test-save.json"
-  let maybeSave :: Maybe Save = decode saveRaw
-  maybe ( return () ) ( putStrLn . show ) maybeSave
+  appDataRaw <- LzByteStrC8.readFile "test-save.json"
+  let maybeAppData :: Maybe AppData = decode appDataRaw
+  maybe ( return () ) ( putStrLn . show ) maybeAppData
 
   SDL.initializeAll
 
@@ -75,11 +75,11 @@ main = do
     -- Initialize ImGui's OpenGL backend
     _ <- managed_ $ bracket_ openGL2Init openGL2Shutdown
 
-    case maybeSave of
-      Just save -> do
+    case maybeAppData of
+      Just appData -> do
         newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
         newActivityNameEditRef <- liftIO $ newIORef $ ""
-        let initAppState = AppState {} & #allServiceNames .~ ( save ^. #allServiceNames )
+        let initAppState = AppState {} & #appData .~ appData
                                        & #cursorPosRef .~ newCursorPosRef
                                        & #editingActivity .~ Nothing
                                        & #activityNameEditRef .~ newActivityNameEditRef
@@ -87,6 +87,6 @@ main = do
         liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
 
       _ ->
-        liftIO $ putStrLn "Failed to load save."
+        liftIO $ putStrLn "Failed to load appData."
         
 

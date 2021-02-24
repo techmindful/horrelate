@@ -51,7 +51,7 @@ drawOverviewPanel = do
     DearImGui.setCursorPos cursorPosRef'
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
-    appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #allServiceNames ) [0..] posY_List ) appState
+    appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #appData . #allServiceNames ) [0..] posY_List ) appState
     DearImGui.endChild
 
     return appState'
@@ -87,7 +87,7 @@ drawServiceName name indexInList posY = do
       DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
         True -> do
           newName <- liftIO $ readIORef $ appState & activityNameEditRef
-          put $ appState & #allServiceNames %~ map (\name' -> if name' == name then newName else name')
+          put $ appState & #appData . #allServiceNames %~ map (\name' -> if name' == name then newName else name')
                          & #editingActivity  .~ Nothing
           --put $ appState {
           --  allServiceNames = map (\name' -> if name' == name then newName else name') ( appState & allServiceNames )
@@ -116,7 +116,7 @@ drawServiceName name indexInList posY = do
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del " ++ show indexInList ) >>= \case
         True ->
-          put $ appState & #allServiceNames %~ filter ( /= name )
+          put $ appState & #appData . #allServiceNames %~ filter ( /= name )
 
         False -> return ()
 
