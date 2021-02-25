@@ -49,7 +49,7 @@ drawServicePanel = do
 
     Utils.setCursorPos' cursorPosRef' servicePanelPos
 
-    DearImGui.beginChildOfSize "Overview Panel" wsRef
+    DearImGui.beginChildOfSize "Service Panel" wsRef
     appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #appData . #allServiceNames ) [0..] posY_List ) appState
     DearImGui.endChild
 
@@ -78,12 +78,12 @@ drawServiceName name indexInList posY = do
     Just True -> do
       -- Draw input box.
       Utils.setCursorPos' cursorPosRef' inputBoxPos
-      DearImGui.pushItemWidth 280
-      DearImGui.inputText "New Activity?" ( appState & serviceNameEditRef ) 128
+      DearImGui.pushItemWidth 380
+      DearImGui.inputText "##Service Name Edit" ( appState & serviceNameEditRef ) 128
       DearImGui.popItemWidth
 
       Utils.setCursorPos' cursorPosRef' confirmButtonPos
-      DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
+      DearImGui.button ( "Confirm##" ++ show indexInList ) >>= \case
         True -> do
           newName <- liftIO $ readIORef $ appState & serviceNameEditRef
           put $ appState & #appData . #allServiceNames %~ map (\name' -> if name' == name then newName else name')
@@ -96,7 +96,7 @@ drawServiceName name indexInList posY = do
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' cancelButtonPos
-      DearImGui.button ( "Cancel " ++ show indexInList ) >>= \case
+      DearImGui.button ( "Cancel##" ++ show indexInList ) >>= \case
         True -> put $ appState { editingService = Nothing }
         False -> return ()
 
@@ -105,7 +105,7 @@ drawServiceName name indexInList posY = do
       DearImGui.text name
 
       Utils.setCursorPos' cursorPosRef' editButtonPos
-      DearImGui.button ( "Edit " ++ show indexInList ) >>= \case
+      DearImGui.button ( "Edit##" ++ show indexInList ) >>= \case
         True -> do
           liftIO $ writeIORef ( appState & serviceNameEditRef ) ""
           put $ appState { editingService = Just name }
@@ -113,7 +113,7 @@ drawServiceName name indexInList posY = do
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
-      DearImGui.button ( "Del " ++ show indexInList ) >>= \case
+      DearImGui.button ( "Del##" ++ show indexInList ) >>= \case
         True ->
           put $ appState & #appData . #allServiceNames %~ filter ( /= name )
 

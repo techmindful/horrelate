@@ -78,6 +78,7 @@ drawValue ( i, value ) = do
   let pos_X = x valuesStartPos
       pos_Y = y valuesStartPos + ( fromIntegral i ) * valuesGap_Y
   Utils.setCursorPos' ( appState & cursorPosRef ) $ ImVec2 pos_X pos_Y
+  -- TODO: Using same ref now causes editing all input boxes.
   DearImGui.inputText ( "##Identifier Value Edit " ++ show i ) ( appState & identifierValueEditRef ) 128
 
   return ()
