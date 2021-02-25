@@ -36,6 +36,21 @@ data AppState = AppState {
 } deriving ( Generic )
 
 
+data AppData = AppData {
+  allServiceNames :: [ String ]
+, allIdentifiers  :: Map String [ String ]
+, nodes           :: [ Node ]
+} deriving ( Generic, Show )
+
+
+data Node = Node {
+  activity :: Activity
+, drawPos  :: ImVec2
+} deriving ( Generic, Show )
+instance FromJSON Node
+
+
+instance FromJSON AppData
 data Command
   = Add
   | Quit
@@ -83,21 +98,6 @@ data Address      = Address {
   , country :: String 
 } deriving ( Eq, Show, Generic )
 instance FromJSON Address
-
-
-data Node = Node {
-  activity :: Activity
-, drawPos  :: ImVec2
-} deriving ( Generic, Show )
-instance FromJSON Node
-
-
-data AppData = AppData {
-  allServiceNames :: [ String ]
-, allIdentifiers  :: Map String [ String ]
-, nodes           :: [ Node ]
-} deriving ( Generic, Show )
-instance FromJSON AppData
 
 
 type ImGuiWindowPosRef  = IORef ImVec2
