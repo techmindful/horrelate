@@ -27,9 +27,10 @@ data AppState = AppState {
 
   appData :: AppData
 
+, editingService :: Maybe String
+, serviceNameEditRef :: IORef String
+
 , cursorPosRef :: IORef ImVec2
-, editingActivity :: Maybe String
-, activityNameEditRef :: IORef String
 } deriving ( Generic )
 
 

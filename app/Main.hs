@@ -81,8 +81,8 @@ main = do
         newActivityNameEditRef <- liftIO $ newIORef $ ""
         let initAppState = AppState {} & #appData .~ appData
                                        & #cursorPosRef .~ newCursorPosRef
-                                       & #editingActivity .~ Nothing
-                                       & #activityNameEditRef .~ newActivityNameEditRef
+                                       & #editingService .~ Nothing
+                                       & #serviceNameEditRef .~ newActivityNameEditRef
 
         liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
 

@@ -74,30 +74,30 @@ drawServiceName name indexInList posY = do
       cancelButtonPos   = delButtonPos
 
   -- Did user click "edit" on this entry?
-  case fmap ( == name ) $ appState & editingActivity of
+  case fmap ( == name ) $ appState & editingService of
     Just True -> do
       -- Draw input box.
       Utils.setCursorPos' cursorPosRef' inputBoxPos
       DearImGui.pushItemWidth 280
-      DearImGui.inputText "New Activity?" ( appState & activityNameEditRef ) 128
+      DearImGui.inputText "New Activity?" ( appState & serviceNameEditRef ) 128
       DearImGui.popItemWidth
 
       Utils.setCursorPos' cursorPosRef' confirmButtonPos
       DearImGui.button ( "Confirm " ++ show indexInList ) >>= \case
         True -> do
-          newName <- liftIO $ readIORef $ appState & activityNameEditRef
+          newName <- liftIO $ readIORef $ appState & serviceNameEditRef
           put $ appState & #appData . #allServiceNames %~ map (\name' -> if name' == name then newName else name')
-                         & #editingActivity  .~ Nothing
+                         & #editingService  .~ Nothing
           --put $ appState {
           --  allServiceNames = map (\name' -> if name' == name then newName else name') ( appState & allServiceNames )
-          --, editingActivity  = Nothing
+          --, editingService  = Nothing
           --}
 
         False -> return ()
 
       Utils.setCursorPos' cursorPosRef' cancelButtonPos
       DearImGui.button ( "Cancel " ++ show indexInList ) >>= \case
-        True -> put $ appState { editingActivity = Nothing }
+        True -> put $ appState { editingService = Nothing }
         False -> return ()
 
     _ -> do
@@ -107,8 +107,8 @@ drawServiceName name indexInList posY = do
       Utils.setCursorPos' cursorPosRef' editButtonPos
       DearImGui.button ( "Edit " ++ show indexInList ) >>= \case
         True -> do
-          liftIO $ writeIORef ( appState & activityNameEditRef ) ""
-          put $ appState { editingActivity = Just name }
+          liftIO $ writeIORef ( appState & serviceNameEditRef ) ""
+          put $ appState { editingService = Just name }
 
         False -> return ()
 
