@@ -83,17 +83,10 @@ main = do
         newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
         newActivityNameEditRef <- liftIO $ newIORef $ ""
 
-        let allIdentifierTypes = Map.keys ( appData ^. #allIdentifiers )
-            maybeFirstIdentifierType = Safe.head allIdentifierTypes
-            identifierTypeSelStr =
-              case maybeFirstIdentifierType of
-                Just s -> s
-                _ -> "<No identifier type listed>"
-
         let initAppState = AppState {} & #appData .~ appData
                                        & #editingService .~ Nothing
                                        & #serviceNameEditRef .~ newActivityNameEditRef
-                                       & #identifierTypeSel .~ identifierTypeSelStr
+                                       & #identifierTypeSel .~ Nothing
                                        & #cursorPosRef .~ newCursorPosRef
 
         liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState

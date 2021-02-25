@@ -14,6 +14,7 @@ import           Control.Monad.State
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 import           Data.Function ( (&) )
 import           Data.Map.Strict as Map
+import           Data.Maybe ( fromMaybe )
 
 
 panelPos  = ImVec2 720 300
@@ -32,7 +33,8 @@ drawIdentifiersPanel = do
   liftIO $ newIORef panelSize >>= DearImGui.beginChildOfSize "All Identifiers"
 
   -- Draw combo.
-  isComboOpen <- liftIO $ DearImGui.beginCombo "Identifier Type" ( appState ^. #identifierTypeSel )
+  let comboActiveStr = fromMaybe "<No identifier type selected>" $ appState ^. #identifierTypeSel
+  isComboOpen <- liftIO $ DearImGui.beginCombo "Identifier Type" comboActiveStr
   case isComboOpen of
     False -> return ()
     True  -> do
@@ -43,15 +45,15 @@ drawIdentifiersPanel = do
   appState' <- get
 
   -- Draw values.
-  let maybeValues = Map.lookup ( appState' ^. #identifierTypeSel ) ( appState' ^. #appData . #allIdentifiers )
+  let maybeValues = ( appState' ^. #identifierTypeSel ) >>= ( \sel -> Map.lookup sel ( appState' ^. #appData . #allIdentifiers ) )
   case maybeValues of
-    Nothing -> do
-      liftIO $ putStrLn "Error: No identifier values found given the selected type in the combo."
+    Nothing -> return ()
     Just values -> do
       let indexedValues = zip [ 0.. ] values
       ( liftIO $ execStateT ( mapM_ drawValue indexedValues ) appState' ) >>= put
 
   liftIO $ DearImGui.endChild
+
 
 drawType :: String -> StateT AppState IO ()
 drawType typeStr = do
@@ -62,7 +64,7 @@ drawType typeStr = do
   case isSelected of
     False -> return ()
     True  -> do
-      put $ ( appState & #identifierTypeSel .~ typeStr )
+      put $ ( appState & #identifierTypeSel .~ Just typeStr )
 
 
 drawValue :: ( Int, String ) -> StateT AppState IO ()
