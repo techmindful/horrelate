@@ -25,9 +25,11 @@ import           Control.Monad.IO.Class
 import           Control.Monad.State
 import           Control.Monad.Managed ( runManaged, managed, managed_ )
 import           Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as LzByteStrC8
 import           Data.Function ( (&) )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
-import qualified Data.ByteString.Lazy.Char8 as LzByteStrC8
+import qualified Data.Map.Strict as Map
+import qualified Data.List.Safe as Safe
 
 
 main :: IO ()
@@ -77,12 +79,22 @@ main = do
 
     case maybeAppData of
       Just appData -> do
+
         newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
         newActivityNameEditRef <- liftIO $ newIORef $ ""
+
+        let allIdentifierTypes = Map.keys ( appData ^. #allIdentifiers )
+            maybeFirstIdentifierType = Safe.head allIdentifierTypes
+            identifierTypeSelStr =
+              case maybeFirstIdentifierType of
+                Just s -> s
+                _ -> "<No identifier type listed>"
+
         let initAppState = AppState {} & #appData .~ appData
-                                       & #cursorPosRef .~ newCursorPosRef
                                        & #editingService .~ Nothing
                                        & #serviceNameEditRef .~ newActivityNameEditRef
+                                       & #identifierTypeSel .~ identifierTypeSelStr
+                                       & #cursorPosRef .~ newCursorPosRef
 
         liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState
 

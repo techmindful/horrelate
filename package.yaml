@@ -29,13 +29,13 @@ library:
   - gl
   - sdl2
   - aeson >= 1.5.5.1
-  - listsafe
-  - errors >= 2.3.0
-  - mtl >= 2.2.2
   - bytestring >= 0.10.12.0
   - containers >= 0.6.2.1
+  - errors >= 2.3.0
   - generic-lens >= 2.0.0.0
   - lens >= 4.19.2
+  - listsafe >= 0.1.0.1
+  - mtl >= 2.2.2
 
 executables:
   horrelate-exe:
@@ -54,9 +54,11 @@ executables:
     - sdl2
     - aeson >= 1.5.5.1
     - bytestring >= 0.10.12.0
+    - containers >= 0.6.2.1
+    - lens >= 4.19.2
+    - listsafe >= 0.1.0.1
     - managed
     - mtl >= 2.2.2
-    - lens >= 4.19.2
 
 tests:
   horrelate-test:
