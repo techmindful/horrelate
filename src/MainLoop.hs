@@ -7,7 +7,8 @@
 module MainLoop ( mainLoop ) where
 
 import           Consts
-import           OverviewPanel ( drawOverviewPanel )
+import           IdentifiersPanel ( drawIdentifiersPanel )
+import           OverviewPanel    ( drawOverviewPanel )
 import           ParseCmd ( parseCmd )
 import           Types
 import qualified Utils
@@ -115,16 +116,7 @@ mainLoop
 
     appState' <- execStateT drawOverviewPanel appState
 
-    -- All identifiers panel
-    Utils.setCursorPos' ( appState' & cursorPosRef ) ( ImVec2 720 300 )
-    newIORef ( ImVec2 560 300 ) >>= DearImGui.beginChildOfSize "All Identifiers"
-    isComboOpen <- DearImGui.beginCombo "Identifier Type" "Test"
-    case isComboOpen of
-      False -> return ()
-      True  -> do
-        mapM_ DearImGui.selectable $ ( appState' ^. #appData . #allIdentifiers ) & Map.keys
-        DearImGui.endCombo
-    DearImGui.endChild
+    appState'' <- execStateT drawIdentifiersPanel appState'
 
     let
       drawNode :: IORef String -> Int -> IO Bool
@@ -146,7 +138,7 @@ mainLoop
     DearImGui.setCursorPos cmdInputPosRef
     DearImGui.inputText "Input" cmdInputRef 512
 
-    return appState'
+    return appState''
 
 
   -- Show the ImGui demo window

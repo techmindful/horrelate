@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c9e20bfc1ddd527967d93e5c018613669939fec81da4d38883d28d4c27482e11
+-- hash: efab96ced84ebbc1ea2b7f75642eeb5edaecc44831c041c44443fee77b737273
 
 name:           horrelate
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Consts
+      IdentifiersPanel
       MainLoop
       OverviewPanel
       ParseCmd
