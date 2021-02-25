@@ -8,7 +8,7 @@ module MainLoop ( mainLoop ) where
 
 import           Consts
 import           IdentifiersPanel ( drawIdentifiersPanel )
-import           OverviewPanel    ( drawOverviewPanel )
+import           ServicePanel     ( drawServicePanel )
 import           ParseCmd ( parseCmd )
 import           Types
 import qualified Utils
@@ -114,7 +114,7 @@ mainLoop
   -- Build window, add widgets.
   appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
-    appState' <- execStateT drawOverviewPanel appState
+    appState' <- execStateT drawServicePanel appState
 
     appState'' <- execStateT drawIdentifiersPanel appState'
 

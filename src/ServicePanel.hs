@@ -4,7 +4,7 @@
 {-# language OverloadedLabels #-}
 {-# language ScopedTypeVariables #-}
 
-module OverviewPanel ( drawOverviewPanel ) where
+module ServicePanel ( drawServicePanel ) where
 
 import           Consts
 import           Types
@@ -30,12 +30,12 @@ import           Data.Generics.Internal.VL ( (^.), (.~) )
 import           Data.Generics.Product.Fields ( field )
 
 
-overviewPanelPos  = ImVec2 720 mainWindowHeadingOffset
-overviewPanelSize = ImVec2 560 300
+servicePanelPos  = ImVec2 720 mainWindowHeadingOffset
+servicePanelSize = ImVec2 560 300
 
 
-drawOverviewPanel :: StateT AppState IO ()
-drawOverviewPanel = do
+drawServicePanel :: StateT AppState IO ()
+drawServicePanel = do
 
   appState <- get
 
@@ -45,9 +45,9 @@ drawOverviewPanel = do
 
   appState' <- liftIO do
 
-    wsRef <- newIORef $ overviewPanelSize
+    wsRef <- newIORef $ servicePanelSize
 
-    Utils.setCursorPos' cursorPosRef' overviewPanelPos
+    Utils.setCursorPos' cursorPosRef' servicePanelPos
 
     DearImGui.beginChildOfSize "Overview Panel" wsRef
     appState' <- execStateT ( sequence_ $ zipWith3 drawServiceName ( appState ^. #appData . #allServiceNames ) [0..] posY_List ) appState
