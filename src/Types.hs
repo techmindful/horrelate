@@ -31,6 +31,8 @@ data AppState = AppState {
 , serviceNameEditRef :: IORef String
 
 , identifierTypeSel :: Maybe String
+, editingIdentifierValue :: Maybe String
+, identifierValueEditRef :: IORef String
 
 , cursorPosRef :: IORef ImVec2
 } deriving ( Generic )

@@ -34,7 +34,7 @@ drawIdentifiersPanel = do
 
   -- Draw combo.
   let comboActiveStr = fromMaybe "<No identifier type selected>" $ appState ^. #identifierTypeSel
-  isComboOpen <- liftIO $ DearImGui.beginCombo "Identifier Type" comboActiveStr
+  isComboOpen <- liftIO $ DearImGui.beginCombo "##Identifier Type" comboActiveStr
   case isComboOpen of
     False -> return ()
     True  -> do
@@ -64,7 +64,10 @@ drawType typeStr = do
   case isSelected of
     False -> return ()
     True  -> do
-      put $ ( appState & #identifierTypeSel .~ Just typeStr )
+      put ( appState & #identifierTypeSel .~ Just typeStr )
+      -- Also cancel any editing of identifier value.
+    >> get
+    >>= ( \state -> put ( state & #editingIdentifierValue .~ Nothing ) )
 
 
 drawValue :: ( Int, String ) -> StateT AppState IO ()
@@ -75,5 +78,7 @@ drawValue ( i, value ) = do
   let pos_X = x valuesStartPos
       pos_Y = y valuesStartPos + ( fromIntegral i ) * valuesGap_Y
   Utils.setCursorPos' ( appState & cursorPosRef ) $ ImVec2 pos_X pos_Y
-  DearImGui.text value
+  DearImGui.inputText ( "##Identifier Value Edit " ++ show i ) ( appState & identifierValueEditRef ) 128
+
+  return ()
 
