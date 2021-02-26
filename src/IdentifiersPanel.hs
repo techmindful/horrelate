@@ -9,8 +9,10 @@ import qualified Utils
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
 
+import           Control.Error.Util
 import           Control.Exception ( bracket )
 import           Control.Lens ( (^.), (.~), (%~) )
+import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
 import           Data.Function ( (&) )
@@ -43,26 +45,30 @@ drawIdentifiersPanel = do
       ( liftIO $ execStateT ( mapM_ drawType allIdentifierTypes ) appState ) >>= put
       liftIO $ DearImGui.endCombo
 
-  appState' <- get
-
   -- Draw values.
+  let
+    drawValues :: ExceptT ( IO () ) ( StateT AppState IO ) ()
+    drawValues = do
+      
+      appState <- lift get
 
-  maybe ( return () ) drawSel ( appState' ^. #identifierTypeSel )
+      typeSel <- failWith ( return () ) ( appState ^. #identifierTypeSel )
+
+      values <-
+        failWith
+          ( putStrLn "Error: Identifier values lookup fails with selected type." )
+          ( Map.lookup typeSel $ appState ^. #appData . #allIdentifiers )
+
+      let indexedValues = zip [ 0.. ] values
+          toRun = sequence_ $ map ( $ typeSel ) $ map drawValue indexedValues
+
+      lift $ put =<< ( liftIO $ execStateT toRun appState )
+
+  runExceptT drawValues >>= \case
+    Right _ -> return ()
+    Left m  -> liftIO m
 
   liftIO $ DearImGui.endChild
-
-
--- TODO: Why can't this be in a let block in drawIdentifierPanel?
-drawSel :: String -> StateT AppState IO ()
-drawSel sel = do
-  appState' <- get
-  let maybeValues = Map.lookup sel ( appState' ^. #appData . #allIdentifiers )
-  case maybeValues of
-    Nothing -> return ()
-    Just values -> do
-      let indexedValues = zip [ 0.. ] values
-          toRun = map ( $ sel ) $ map drawValue indexedValues
-      ( liftIO $ execStateT ( sequence_ toRun ) appState' ) >>= put
 
 
 drawType :: String -> StateT AppState IO ()
