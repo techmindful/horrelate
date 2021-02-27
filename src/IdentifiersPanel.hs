@@ -95,11 +95,11 @@ drawValue ( i, value ) typeSel = do
       textPos_Y = y valuesStartPos + ( fromIntegral i ) * valuesGap_Y
       textPos   = ImVec2 textPos_X textPos_Y
 
-      delButtonPos_X = x panelSize - 40
+      delButtonPos_X = x panelSize - 60
       delButtonPos_Y = textPos_Y
       delButtonPos   = ImVec2 delButtonPos_X delButtonPos_Y
 
-      editButtonPos_X = delButtonPos_X - 40
+      editButtonPos_X = delButtonPos_X - 60
       editButtonPos_Y = textPos_Y
       editButtonPos   = ImVec2 editButtonPos_X editButtonPos_Y
 
@@ -113,7 +113,20 @@ drawValue ( i, value ) typeSel = do
     Just True -> do
       Utils.setCursorPos' cursorPosRef' inputPos
       DearImGui.inputText ( "##Identifier Value Edit " ++ show i ) ( appState & identifierValueEditRef ) 128
-      return ()
+
+      Utils.setCursorPos' cursorPosRef' confirmButtonPos
+      DearImGui.button ( "Confirm##" ++ show i ) >>= \case
+        False -> return ()
+        True  -> do
+          newValue <- liftIO $ readIORef $ appState ^. #identifierValueEditRef
+          let f_UpdateValueList = map (\oldValue -> if oldValue == value then newValue else oldValue)
+          put $ appState & #appData . #allIdentifiers %~ Map.adjust f_UpdateValueList typeSel
+                         & #editingIdentifierValue .~ Nothing
+
+      Utils.setCursorPos' cursorPosRef' cancelButtonPos
+      DearImGui.button ( "Cancel##" ++ show i ) >>= \case
+        False -> return ()
+        True  -> put $ appState & #editingIdentifierValue .~ Nothing
 
     _ -> do
       Utils.setCursorPos' cursorPosRef' textPos
@@ -121,13 +134,15 @@ drawValue ( i, value ) typeSel = do
 
       Utils.setCursorPos' cursorPosRef' editButtonPos
       DearImGui.button ( "Edit##" ++ show i ) >>= \case
-        True  -> put $ appState & #editingIdentifierValue .~ Just value
         False -> return ()
+        True  -> do
+          liftIO $ writeIORef ( appState ^. #identifierValueEditRef ) ""
+          put $ appState & #editingIdentifierValue .~ Just value
 
       Utils.setCursorPos' cursorPosRef' delButtonPos
       DearImGui.button ( "Del##" ++ show i ) >>= \case
-        True  -> put $ appState & #appData . #allIdentifiers %~ Map.adjust ( filter ( /= value ) ) typeSel
         False -> return ()
+        True  -> put $ appState & #appData . #allIdentifiers %~ Map.adjust ( filter ( /= value ) ) typeSel
 
   return ()
 

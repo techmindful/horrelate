@@ -86,7 +86,7 @@ drawServiceName name indexInList posY = do
       DearImGui.button ( "Confirm##" ++ show indexInList ) >>= \case
         True -> do
           newName <- liftIO $ readIORef $ appState & serviceNameEditRef
-          put $ appState & #appData . #allServiceNames %~ map (\name' -> if name' == name then newName else name')
+          put $ appState & #appData . #allServiceNames %~ map (\oldName -> if oldName == name then newName else oldName)
                          & #editingService  .~ Nothing
           --put $ appState {
           --  allServiceNames = map (\name' -> if name' == name then newName else name') ( appState & allServiceNames )
