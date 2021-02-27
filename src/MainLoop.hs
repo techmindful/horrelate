@@ -114,32 +114,28 @@ mainLoop
   -- Build window, add widgets.
   appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
-    appState' <- execStateT drawServicePanel appState
-
-    appState'' <- execStateT drawIdentifiersPanel appState'
-
-    let
-      drawNode :: IORef String -> Int -> IO Bool
-      drawNode nodeRef n = do
-        --drawPosRef <- newIORef $ node & drawPos
-        --DearImGui.setCursorPos $ drawPosRef
-        --DearImGui.text $ node & activity & reg & email
-
-        -- Important: Widget names need to be different. Otherwise they entangle.
-        DearImGui.inputText ("Node" ++ show n) nodeRef 64
-
-    DearImGui.pushItemWidth 30
-    --sequence_ $ zipWith drawNode nodes [1..]
-    DearImGui.popItemWidth
-
     -- Draw cmd input.
     let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
     writeIORef cmdInputPosRef cmdInputPos
     DearImGui.setCursorPos cmdInputPosRef
     DearImGui.inputText "Input" cmdInputRef 512
 
-    return appState''
+    let
+      drawNode :: Node -> StateT AppState IO ()
+      drawNode node = do
 
+        appState <- get
+
+        Utils.setCursorPos' ( appState ^. #cursorPosRef ) ( node ^. #drawPos )
+
+        DearImGui.text "Test"
+
+      drawNodes :: StateT AppState IO ()
+      drawNodes = mapM_ drawNode ( appState ^. #appData . #nodes )
+
+    execStateT drawServicePanel appState >>=
+      execStateT drawIdentifiersPanel >>=
+        execStateT drawNodes
 
   -- Show the ImGui demo window
   DearImGui.showDemoWindow

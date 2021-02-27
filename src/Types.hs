@@ -60,7 +60,8 @@ data Command
 
 
 data Activity = Activity {
-  service :: String
+  name :: String
+, service :: String
 , reg :: Registration
 } deriving ( Eq, Show, Generic )
 instance FromJSON Activity

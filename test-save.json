@@ -27,6 +27,7 @@
     {
       "activity":
       {
+        "name": "Normal Amazon Shopping",
         "service": "Amazon",
         "reg":
           {
@@ -36,13 +37,14 @@
       },
       "drawPos":
       {
-        "x": 3.2,
-        "y": 0.4
+        "x": 100.0,
+        "y": 100.0
       }
     },
     {
       "activity":
       {
+        "name": "Private FB with Family",
         "service": "Facebook",
         "reg":
           {
@@ -52,8 +54,8 @@
       },
       "drawPos":
       {
-        "x": 2,
-        "y": 30.8
+        "x": 200.0,
+        "y": 200.0
       }
     }
   ]
