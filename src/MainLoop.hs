@@ -120,18 +120,29 @@ mainLoop
     DearImGui.setCursorPos cmdInputPosRef
     DearImGui.inputText "Input" cmdInputRef 512
 
-    let
-      drawNode :: Node -> StateT AppState IO ()
-      drawNode node = do
+    let drawNode :: Node -> StateT AppState IO ()
+        drawNode node = do
 
-        appState <- get
+          appState <- get
 
-        Utils.setCursorPos' ( appState ^. #cursorPosRef ) ( node ^. #drawPos )
+          let act = node ^. #activity
+          
+              pad_Y = 20
 
-        DearImGui.text "Test"
+              actNamePos  = node ^. #drawPos
+              servNamePos = ImVec2 ( x actNamePos ) ( y actNamePos + pad_Y )
+              
+              cursorPosRef'  = appState ^. #cursorPosRef
+              setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
-      drawNodes :: StateT AppState IO ()
-      drawNodes = mapM_ drawNode ( appState ^. #appData . #nodes )
+          setCursorPos'' actNamePos
+          DearImGui.text $ act ^. #name
+
+          setCursorPos'' servNamePos
+          DearImGui.text $ act ^. #service
+
+        drawNodes :: StateT AppState IO ()
+        drawNodes = mapM_ drawNode ( appState ^. #appData . #nodes )
 
     execStateT drawServicePanel appState >>=
       execStateT drawIdentifiersPanel >>=
