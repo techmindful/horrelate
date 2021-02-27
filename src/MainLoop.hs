@@ -60,41 +60,9 @@ mainLoop
   let
     eventPayloads = SDL.eventPayload <$> events
 
-    shouldSubmitCmd = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
+    --shouldSubmitCmd = any ( isKeyHit SDL.KeycodeReturn ) eventPayloads
 
-    eitherCmd :: Either String Command
-    eitherCmd = parseCmd cmdInput
-  
-    -- App should quit if there's an SDL.QuitEvent,
-    -- Or user submitted a Quit command.
     shouldQuit = any ( == SDL.QuitEvent ) eventPayloads
-              || ( eitherCmd == Right Quit && shouldSubmitCmd )
-
-  -- Process user command.
-  if shouldSubmitCmd then do
-    case parseCmd cmdInput of
-      Left errStr ->
-        liftIO $ putStrLn errStr
-
-      Right Add -> do
-        let newActivity = Activity {
-          reg = Registration {
-            email = "Test"
-          , phoneNum = "123"
-          }
-        }
-        let newNode = Node {
-          drawPos  = ImVec2 100 100
-        , activity = newActivity
-        }
-        return ()
-        --newNode <- liftIO $ newIORef "Test email"
-        --modify (\nodes -> newNode : nodes)
-
-      Right Quit ->
-        liftIO $ putStrLn "Quitting"
-  else
-    return ()
 
 
   appState <- get
@@ -114,12 +82,6 @@ mainLoop
   -- Build window, add widgets.
   appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
-    -- Draw cmd input.
-    let cmdInputPos = ImVec2 ( x paddingXY ) ( fromIntegral windowHeight - y paddingXY - 20 )
-    writeIORef cmdInputPosRef cmdInputPos
-    DearImGui.setCursorPos cmdInputPosRef
-    DearImGui.inputText "Input" cmdInputRef 512
-
     let drawNode :: Node -> StateT AppState IO ()
         drawNode node = do
 
@@ -135,11 +97,28 @@ mainLoop
               cursorPosRef'  = appState ^. #cursorPosRef
               setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
+          -- TODO: Add an "Edit" button and the alternative text input box.
           setCursorPos'' actNamePos
           DearImGui.text $ act ^. #name
 
           setCursorPos'' servNamePos
-          DearImGui.text $ act ^. #service
+          isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
+          case isServComboOpen of
+            False -> return ()
+            True  -> do
+              let drawServSel :: String -> StateT AppState IO ()
+                  drawServSel serv = do
+                    isSelected <- DearImGui.selectable serv
+                    case isSelected of
+                      False -> return ()
+                      True  -> return ()
+
+                  drawServSels :: StateT AppState IO ()
+                  drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
+
+              put =<< ( liftIO $ execStateT drawServSels appState )
+              DearImGui.endCombo
+                        
 
         drawNodes :: StateT AppState IO ()
         drawNodes = mapM_ drawNode ( appState ^. #appData . #nodes )
