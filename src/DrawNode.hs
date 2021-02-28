@@ -27,6 +27,7 @@ drawNode node = do
       actNamePos = node ^. #drawPos
       actEditBtnPos = ImVec2 ( x actNamePos + 170 ) ( y actNamePos )
       actConfirmBtnPos = actEditBtnPos
+      actCancelBtnPos  = ImVec2 ( x actConfirmBtnPos + 60 ) ( y actConfirmBtnPos )
 
       servNamePos = ImVec2 ( x actNamePos ) ( y actNamePos + pad_Y )
       
@@ -57,6 +58,11 @@ drawNode node = do
                 ) nodes
 
           put $ appState & #appData . #nodes %~ f_UpdateNodes
+
+      setCursorPos'' actCancelBtnPos
+      DearImGui.button ( "Cancel## activity name " ++ act ^. #name ) >>= \case
+        False -> return ()
+        True  -> put $ appState & #editingActivityName .~ Nothing
 
     _ -> do
       setCursorPos'' actNamePos
