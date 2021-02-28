@@ -71,7 +71,9 @@ drawNode node = do
       setCursorPos'' actEditBtnPos
       DearImGui.button ( "Edit## activity name " ++ act ^. #name ) >>= \case
         False -> return ()
-        True  -> put $ appState & #editingActivityName .~ ( Just $ act ^. #name )
+        True  -> do
+          liftIO $ writeIORef ( appState ^. #activityNameEditRef ) ""
+          put $ appState & #editingActivityName .~ ( Just $ act ^. #name )
 
   setCursorPos'' servNamePos
   isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
