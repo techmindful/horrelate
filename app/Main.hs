@@ -83,13 +83,20 @@ main = do
         newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
         newServiceNameEditRef <- liftIO $ newIORef ""
         newIdentifierValueEditRef <- liftIO $ newIORef ""
+        newActivityNameEditRef <- liftIO $ newIORef ""
 
         let initAppState = AppState {} & #appData .~ appData
+
                                        & #editingService .~ Nothing
                                        & #serviceNameEditRef .~ newServiceNameEditRef
+
                                        & #identifierTypeSel .~ Nothing
                                        & #editingIdentifierValue .~ Nothing
                                        & #identifierValueEditRef .~ newIdentifierValueEditRef
+
+                                       & #editingActivityName .~ Nothing
+                                       & #activityNameEditRef .~ newActivityNameEditRef
+
                                        & #cursorPosRef .~ newCursorPosRef
 
         liftIO $ evalStateT ( mainLoop window imguiWindowPosRef imguiWindowSizeRef cmdInputPosRef cmdInputRef paddingXY ) initAppState

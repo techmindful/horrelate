@@ -1,3 +1,4 @@
+{-# language LambdaCase #-}
 {-# language OverloadedLabels #-}
 
 module DrawNode ( drawNode ) where
@@ -22,15 +23,26 @@ drawNode node = do
   
       pad_Y = 20
 
-      actNamePos  = node ^. #drawPos
+      actNamePos    = node ^. #drawPos
+      actEditBtnPos = ImVec2 ( x actNamePos + 100 ) ( y actNamePos )
+
       servNamePos = ImVec2 ( x actNamePos ) ( y actNamePos + pad_Y )
       
       cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
-  -- TODO: Add an "Edit" button and the alternative text input box.
+  setCursorPos'' actEditBtnPos
+  DearImGui.button ( "Edit## activity name " ++ act ^. #name ) >>= \case
+    False -> return ()
+    True  -> put $ appState & #editingActivityName .~ ( Just $ act ^. #name )
+
   setCursorPos'' actNamePos
-  DearImGui.text $ act ^. #name
+  case fmap ( == act ^. #name ) ( appState ^. #editingActivityName ) of
+    Just True -> do
+      DearImGui.inputText ( "##Editing Activity " ++ act ^. #name ) ( appState ^. #activityNameEditRef ) 128
+      return ()
+
+    _ -> DearImGui.text $ act ^. #name
 
   setCursorPos'' servNamePos
   isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
