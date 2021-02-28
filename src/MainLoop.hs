@@ -7,6 +7,7 @@
 module MainLoop ( mainLoop ) where
 
 import           Consts
+import           DrawNode ( drawNode )
 import           IdentifiersPanel ( drawIdentifiersPanel )
 import           ServicePanel     ( drawServicePanel )
 import           ParseCmd ( parseCmd )
@@ -82,45 +83,7 @@ mainLoop
   -- Build window, add widgets.
   appState' <- liftIO $ bracket_ ( DearImGui.begin "Main Window" ) DearImGui.end do
 
-    let drawNode :: Node -> StateT AppState IO ()
-        drawNode node = do
-
-          appState <- get
-
-          let act = node ^. #activity
-          
-              pad_Y = 20
-
-              actNamePos  = node ^. #drawPos
-              servNamePos = ImVec2 ( x actNamePos ) ( y actNamePos + pad_Y )
-              
-              cursorPosRef'  = appState ^. #cursorPosRef
-              setCursorPos'' = Utils.setCursorPos' cursorPosRef'
-
-          -- TODO: Add an "Edit" button and the alternative text input box.
-          setCursorPos'' actNamePos
-          DearImGui.text $ act ^. #name
-
-          setCursorPos'' servNamePos
-          isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
-          case isServComboOpen of
-            False -> return ()
-            True  -> do
-              let drawServSel :: String -> StateT AppState IO ()
-                  drawServSel serv = do
-                    isSelected <- DearImGui.selectable serv
-                    case isSelected of
-                      False -> return ()
-                      True  -> return ()
-
-                  drawServSels :: StateT AppState IO ()
-                  drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
-
-              put =<< ( liftIO $ execStateT drawServSels appState )
-              DearImGui.endCombo
-                        
-
-        drawNodes :: StateT AppState IO ()
+    let drawNodes :: StateT AppState IO ()
         drawNodes = mapM_ drawNode ( appState ^. #appData . #nodes )
 
     execStateT drawServicePanel appState >>=
