@@ -97,6 +97,7 @@ main = do
                                        & #nodeEdit .~ Nothing
 
                                        & #nodeActNameEditRef .~ newNodeActNameEditRef
+                                       & #nodeServEdit .~ ""
 
                                        & #cursorPosRef .~ newCursorPosRef
 

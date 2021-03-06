@@ -37,6 +37,7 @@ data AppState = AppState {
 , nodeEdit :: Maybe NodeEdit
 
 , nodeActNameEditRef :: IORef String
+, nodeServEdit :: String
 
 , cursorPosRef :: IORef ImVec2
 } deriving ( Generic )

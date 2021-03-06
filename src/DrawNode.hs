@@ -21,12 +21,14 @@ pad_Y = 20
 
 actNamePos :: Node -> ImVec2
 actNamePos node  = node ^. #drawPos
-
 actEditBtnPos node = ImVec2 ( x ( actNamePos node ) + 170 ) ( y $ actNamePos node )
 actConfirmBtnPos = actEditBtnPos
 actCancelBtnPos node  = ImVec2 ( x ( actConfirmBtnPos node ) + 60 ) ( y $ actConfirmBtnPos node )
 
-servNamePos node = ImVec2 ( x ( actNamePos node ) ) ( ( y ( actNamePos node ) ) + pad_Y )
+servNamePos node = ImVec2 ( x $ actNamePos node ) ( ( y ( actNamePos node ) ) + pad_Y )
+servEditBtnPos node = ImVec2 ( x ( servNamePos node ) + 170 ) ( y $ servNamePos node )
+servConfirmBtnPos = servEditBtnPos
+servCancelBtnPos node = ImVec2 ( x ( servConfirmBtnPos node ) + 60 ) ( y $ servConfirmBtnPos node )
 
 
 drawNode :: Node -> StateT AppState IO ()
@@ -39,7 +41,7 @@ drawNode node = do
   
   let drawMap_Partial = Map.fromList
         [ ( ActField,  ( drawAct,  drawAct_Edit  ) )
-        --, ( ServField, ( drawServ, drawServ_Edit ) )
+        , ( ServField, ( drawServ, drawServ_Edit ) )
         ]
 
       drawMap = Map.map ( \( f, f_Edit ) -> ( f node, f_Edit node ) ) drawMap_Partial
@@ -127,32 +129,52 @@ drawAct_Edit node = do
     True  -> put $ appState & #nodeEdit .~ Nothing
 
 
---drawServ :: Node -> StateT AppState IO ()
---drawServ node = do
---
---  appState <- get
---
---  let cursorPosRef'  = appState ^. #cursorPosRef
---      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
---
---  setCursorPos'' $ servNamePos node
---  isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
---  case isServComboOpen of
---    False -> return ()
---    True  -> do
---      let drawServSel :: String -> StateT AppState IO ()
---          drawServSel serv = do
---            isSelected <- DearImGui.selectable serv
---            case isSelected of
---              False -> return ()
---              True  -> return ()
---
---          drawServSels :: StateT AppState IO ()
---          drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
---
---      put =<< ( liftIO $ execStateT drawServSels appState )
---      DearImGui.endCombo
---
---
---  DearImGui.popItemWidth
-                        
+drawServ :: Node -> StateT AppState IO ()
+drawServ node = do
+  
+  appState <- get
+
+  let act = node ^. #activity
+      actName = act ^. #name
+      service = act ^. #service
+
+  let cursorPosRef'  = appState ^. #cursorPosRef
+      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+
+  setCursorPos'' $ servNamePos node
+  DearImGui.text service
+
+  setCursorPos'' $ servEditBtnPos node
+  DearImGui.button( "Edit## service for " ++ actName ) >>= \case
+    False -> return ()
+    True  -> put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = ServField } )
+
+
+drawServ_Edit :: Node -> StateT AppState IO ()
+drawServ_Edit node = do
+
+  appState <- get
+
+  let actName = node ^. #activity . #name
+  
+  let cursorPosRef'  = appState ^. #cursorPosRef
+      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+
+  setCursorPos'' $ servNamePos node
+  isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ actName ) ( appState ^. #nodeServEdit )
+  case isServComboOpen of
+    False -> return ()
+    True  -> do
+      let drawServSel :: String -> StateT AppState IO ()
+          drawServSel serv = do
+            isSelected <- DearImGui.selectable serv
+            case isSelected of
+              False -> return ()
+              True  -> put $ appState & #nodeServEdit .~ serv
+
+          drawServSels :: StateT AppState IO ()
+          drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
+
+      put =<< ( liftIO $ execStateT drawServSels appState )
+      DearImGui.endCombo
+
