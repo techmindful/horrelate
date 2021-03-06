@@ -139,7 +139,10 @@ drawServ node = do
   setCursorPos'' $ servEditBtnPos node
   DearImGui.button( "Edit## service for " ++ actName ) >>= \case
     False -> return ()
-    True  -> put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = ServField } )
+    True  -> do
+      put $ appState & #nodeServEdit .~ ""
+      appState' <- get  -- TODO: How to avoid writing this?
+      put $ appState' & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = ServField } )
 
 
 drawServ_Edit :: Node -> StateT AppState IO ()
@@ -175,8 +178,13 @@ drawServ_Edit node = do
     False -> return ()
     True  -> do
       put $ appState & #appData . #nodes %~ updateNodes actName ( #activity . #service ) ( appState ^. #nodeServEdit )
-      appState' <- get
+      appState' <- get  -- TODO: How to avoid writing this?
       put $ appState' & #nodeEdit .~ Nothing
+
+  setCursorPos'' $ servCancelBtnPos node
+  DearImGui.button ( "Cancel## service for " ++ actName ) >>= \case
+    False -> return ()
+    True  -> put $ appState & #nodeEdit .~ Nothing
 
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
