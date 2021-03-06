@@ -113,16 +113,7 @@ drawAct_Edit node = do
     False -> return ()
     True  -> do
       newActName <- liftIO $ readIORef $ appState ^. #nodeActNameEditRef
-
-      let f_UpdateNodes :: [ Node ] -> [ Node ]
-          f_UpdateNodes nodes =
-            map ( \node ->
-              if node ^. #activity . #name == actName then
-                node & #activity . #name .~ newActName
-              else node
-            ) nodes
-
-      put $ appState & #appData . #nodes %~ f_UpdateNodes
+      put $ appState & #appData . #nodes %~ updateNodes actName ( #activity . #name ) newActName
 
   setCursorPos'' $ actCancelBtnPos node
   DearImGui.button ( "Cancel## activity name " ++ actName ) >>= \case
