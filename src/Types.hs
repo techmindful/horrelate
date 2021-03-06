@@ -34,8 +34,9 @@ data AppState = AppState {
 , editingIdentifierValue :: Maybe String
 , identifierValueEditRef :: IORef String
 
-, editingActivityName :: Maybe String
-, activityNameEditRef :: IORef String
+, nodeEdit :: Maybe NodeEdit
+
+, nodeActNameEditRef :: IORef String
 
 , cursorPosRef :: IORef ImVec2
 } deriving ( Generic )
@@ -53,6 +54,19 @@ data Node = Node {
 , drawPos  :: ImVec2
 } deriving ( Generic, Show )
 instance FromJSON Node
+
+
+data NodeEdit = NodeEdit {
+  actName :: String
+, field   :: NodeField
+} deriving ( Generic )
+
+
+data NodeField
+  = ActField
+  | ServField
+  | IdentField
+  deriving ( Eq, Generic, Ord )
 
 
 instance FromJSON AppData

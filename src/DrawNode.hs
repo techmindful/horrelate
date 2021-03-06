@@ -12,7 +12,21 @@ import           Control.Lens ( (^.), (.~), (%~) )
 import           Control.Monad.State
 import           Data.Function ( (&) )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
-import qualified Data.Map as Map
+import qualified Data.List as List
+import qualified Data.Map  as Map
+
+
+pad_Y = 20
+
+
+actNamePos :: Node -> ImVec2
+actNamePos node  = node ^. #drawPos
+
+actEditBtnPos node = ImVec2 ( x ( actNamePos node ) + 170 ) ( y $ actNamePos node )
+actConfirmBtnPos = actEditBtnPos
+actCancelBtnPos node  = ImVec2 ( x ( actConfirmBtnPos node ) + 60 ) ( y $ actConfirmBtnPos node )
+
+servNamePos node = ImVec2 ( x ( actNamePos node ) ) ( ( y ( actNamePos node ) ) + pad_Y )
 
 
 drawNode :: Node -> StateT AppState IO ()
@@ -21,78 +35,124 @@ drawNode node = do
   appState <- get
 
   let act = node ^. #activity
+      actName = act ^. #name
   
-      pad_Y = 20
+  let drawMap_Partial = Map.fromList
+        [ ( ActField,  ( drawAct,  drawAct_Edit  ) )
+        --, ( ServField, ( drawServ, drawServ_Edit ) )
+        ]
 
-      actNamePos = node ^. #drawPos
-      actEditBtnPos = ImVec2 ( x actNamePos + 170 ) ( y actNamePos )
-      actConfirmBtnPos = actEditBtnPos
-      actCancelBtnPos  = ImVec2 ( x actConfirmBtnPos + 60 ) ( y actConfirmBtnPos )
+      drawMap = Map.map ( \( f, f_Edit ) -> ( f node, f_Edit node ) ) drawMap_Partial
 
-      servNamePos = ImVec2 ( x actNamePos ) ( y actNamePos + pad_Y )
-      
-      cursorPosRef'  = appState ^. #cursorPosRef
-      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+      drawNoEdit = liftIO $ execStateT ( sequence_ $ List.map ( fst . snd ) ( Map.toList drawMap ) ) appState
 
 
   DearImGui.pushItemWidth 150
 
 
-  case fmap ( == act ^. #name ) ( appState ^. #editingActivityName ) of
-    Just True -> do
-      setCursorPos'' actNamePos
-      DearImGui.inputText ( "##Editing Activity " ++ act ^. #name ) ( appState ^. #activityNameEditRef ) 128
+  case appState ^. #nodeEdit of
+    Nothing ->
+      put =<< drawNoEdit
 
-      setCursorPos'' actConfirmBtnPos
-      DearImGui.button ( "Confirm## activity name " ++ act ^. #name ) >>= \case
-        False -> return ()
-        True  -> do
-          newActName <- liftIO $ readIORef $ appState ^. #activityNameEditRef
+    Just nodeEdit -> do
+      -- If editing this node
+      if nodeEdit ^. #actName == actName then do
+        let
+          f_PickFunc = \( field, ( f, f_Edit ) ) -> 
+              if field == nodeEdit ^. #field then f_Edit else f
 
-          let f_UpdateNodes :: [ Node ] -> [ Node ]
-              f_UpdateNodes nodes =
-                map ( \node ->
-                  if node ^. #activity . #name == act ^. #name then
-                    node & #activity . #name .~ newActName
-                  else node
-                ) nodes
+          fs = List.map f_PickFunc ( Map.toList drawMap )
 
-          put $ appState & #appData . #nodes %~ f_UpdateNodes
-
-      setCursorPos'' actCancelBtnPos
-      DearImGui.button ( "Cancel## activity name " ++ act ^. #name ) >>= \case
-        False -> return ()
-        True  -> put $ appState & #editingActivityName .~ Nothing
-
-    _ -> do
-      setCursorPos'' actNamePos
-      DearImGui.text $ act ^. #name
-
-      setCursorPos'' actEditBtnPos
-      DearImGui.button ( "Edit## activity name " ++ act ^. #name ) >>= \case
-        False -> return ()
-        True  -> do
-          liftIO $ writeIORef ( appState ^. #activityNameEditRef ) ""
-          put $ appState & #editingActivityName .~ ( Just $ act ^. #name )
-
-  setCursorPos'' servNamePos
-  isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
-  case isServComboOpen of
-    False -> return ()
-    True  -> do
-      let drawServSel :: String -> StateT AppState IO ()
-          drawServSel serv = do
-            isSelected <- DearImGui.selectable serv
-            case isSelected of
-              False -> return ()
-              True  -> return ()
-
-          drawServSels :: StateT AppState IO ()
-          drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
-
-      put =<< ( liftIO $ execStateT drawServSels appState )
-      DearImGui.endCombo
+        put =<< ( liftIO $ execStateT ( sequence_ fs ) appState )
+      else
+        put =<< drawNoEdit
 
 
   DearImGui.popItemWidth
+
+
+drawAct :: Node -> StateT AppState IO ()
+drawAct node = do
+
+  appState <- get
+
+  let actName = node ^. #activity . #name
+ 
+  let cursorPosRef'  = appState ^. #cursorPosRef
+      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+
+  setCursorPos'' $ actNamePos node
+  DearImGui.text $ actName
+
+  setCursorPos'' $ actEditBtnPos node
+  DearImGui.button ( "Edit## activity name " ++ actName ) >>= \case
+    False -> return ()
+    True  -> do
+      liftIO $ writeIORef ( appState ^. #nodeActNameEditRef ) ""
+      put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = ActField } )
+
+
+drawAct_Edit :: Node -> StateT AppState IO ()
+drawAct_Edit node = do
+
+  appState <- get
+
+  let actName = node ^. #activity . #name
+
+  let cursorPosRef'  = appState ^. #cursorPosRef
+      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+
+  setCursorPos'' $ actNamePos node
+  DearImGui.inputText ( "##Editing Activity " ++ actName ) ( appState ^. #nodeActNameEditRef ) 128
+
+  setCursorPos'' $ actConfirmBtnPos node
+  DearImGui.button ( "Confirm## activity name " ++ actName ) >>= \case
+    False -> return ()
+    True  -> do
+      newActName <- liftIO $ readIORef $ appState ^. #nodeActNameEditRef
+
+      let f_UpdateNodes :: [ Node ] -> [ Node ]
+          f_UpdateNodes nodes =
+            map ( \node ->
+              if node ^. #activity . #name == actName then
+                node & #activity . #name .~ newActName
+              else node
+            ) nodes
+
+      put $ appState & #appData . #nodes %~ f_UpdateNodes
+
+  setCursorPos'' $ actCancelBtnPos node
+  DearImGui.button ( "Cancel## activity name " ++ actName ) >>= \case
+    False -> return ()
+    True  -> put $ appState & #nodeEdit .~ Nothing
+
+
+--drawServ :: Node -> StateT AppState IO ()
+--drawServ node = do
+--
+--  appState <- get
+--
+--  let cursorPosRef'  = appState ^. #cursorPosRef
+--      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+--
+--  setCursorPos'' $ servNamePos node
+--  isServComboOpen <- DearImGui.beginCombo ( "##Service Combo For " ++ act ^. #name ) ( act ^. #service )
+--  case isServComboOpen of
+--    False -> return ()
+--    True  -> do
+--      let drawServSel :: String -> StateT AppState IO ()
+--          drawServSel serv = do
+--            isSelected <- DearImGui.selectable serv
+--            case isSelected of
+--              False -> return ()
+--              True  -> return ()
+--
+--          drawServSels :: StateT AppState IO ()
+--          drawServSels = mapM_ drawServSel ( appState ^. #appData . #allServiceNames )
+--
+--      put =<< ( liftIO $ execStateT drawServSels appState )
+--      DearImGui.endCombo
+--
+--
+--  DearImGui.popItemWidth
                         

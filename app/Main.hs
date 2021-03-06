@@ -83,7 +83,7 @@ main = do
         newCursorPosRef <- liftIO $ newIORef $ ImVec2 0 0
         newServiceNameEditRef <- liftIO $ newIORef ""
         newIdentifierValueEditRef <- liftIO $ newIORef ""
-        newActivityNameEditRef <- liftIO $ newIORef ""
+        newNodeActNameEditRef <- liftIO $ newIORef ""
 
         let initAppState = AppState {} & #appData .~ appData
 
@@ -94,8 +94,9 @@ main = do
                                        & #editingIdentifierValue .~ Nothing
                                        & #identifierValueEditRef .~ newIdentifierValueEditRef
 
-                                       & #editingActivityName .~ Nothing
-                                       & #activityNameEditRef .~ newActivityNameEditRef
+                                       & #nodeEdit .~ Nothing
+
+                                       & #nodeActNameEditRef .~ newNodeActNameEditRef
 
                                        & #cursorPosRef .~ newCursorPosRef
 
