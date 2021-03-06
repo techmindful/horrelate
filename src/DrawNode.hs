@@ -1,5 +1,6 @@
 {-# language LambdaCase #-}
 {-# language OverloadedLabels #-}
+{-# language RankNTypes #-}
 
 module DrawNode ( drawNode ) where
 
@@ -8,7 +9,7 @@ import qualified Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
-import           Control.Lens ( (^.), (.~), (%~) )
+import           Control.Lens ( Lens',  (^.), (.~), (%~) )
 import           Control.Monad.State
 import           Data.Function ( (&) )
 import           Data.IORef ( IORef, newIORef, readIORef, writeIORef )
@@ -177,4 +178,24 @@ drawServ_Edit node = do
 
       put =<< ( liftIO $ execStateT drawServSels appState )
       DearImGui.endCombo
+
+  setCursorPos'' $ servConfirmBtnPos node
+  DearImGui.button ( "Confirm## service for " ++ actName ) >>= \case
+    False -> return ()
+    True  -> do
+      put $ appState & #appData . #nodes %~ updateNodes actName ( #activity . #service ) ( appState ^. #nodeServEdit )
+      appState' <- get
+      put $ appState' & #nodeEdit .~ Nothing
+
+
+updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
+updateNodes actName lens newVal nodes =
+  let
+    updateNode = \node ->
+      if node ^. #activity . #name == actName then
+        node & lens .~ newVal
+      else
+        node
+  in
+  map updateNode nodes
 
