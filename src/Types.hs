@@ -80,45 +80,9 @@ data Command
 data Activity = Activity {
   name :: String
 , service :: String
-, reg :: Registration
+, identifiers :: Map String String
 } deriving ( Eq, Show, Generic )
 instance FromJSON Activity
-
-
-data Registration = Registration {
-    email    :: String
-  , phoneNum :: String
-  --, name     :: Name
-  --, address  :: Address
-} deriving ( Eq, Show, Generic )
-instance FromJSON Registration
-
-
-newtype Email = Email String
-  deriving ( Eq, Show, Generic )
-instance FromJSON Email
-
-
-newtype PhoneNum  = PhoneNum Int
-  deriving ( Eq, Show, Generic )
-instance FromJSON PhoneNum
-
-
-data Name         = Name {
-    firstName :: String
-  , midName   :: String
-  , lastName  :: String
-} deriving ( Eq, Show, Generic )
-instance FromJSON Name
-
-
-data Address      = Address {
-    street  :: String
-  , apt     :: String
-  , city    :: String
-  , country :: String 
-} deriving ( Eq, Show, Generic )
-instance FromJSON Address
 
 
 type ImGuiWindowPosRef  = IORef ImVec2

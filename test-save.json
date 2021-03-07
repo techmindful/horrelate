@@ -29,7 +29,7 @@
       {
         "name": "Normal Amazon Shopping",
         "service": "Amazon",
-        "reg":
+        "identifiers":
           {
             "email": "alice@gmail.com",
             "phoneNum": "123"
@@ -46,7 +46,7 @@
       {
         "name": "Private FB with Family",
         "service": "Facebook",
-        "reg":
+        "identifiers":
           {
             "email": "fake1@gmail.com",
             "phoneNum": "102"
