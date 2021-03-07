@@ -32,6 +32,13 @@ servConfirmBtnPos = servEditBtnPos
 servCancelBtnPos node = ImVec2 ( x ( servConfirmBtnPos node ) + 60 ) ( y $ servConfirmBtnPos node )
 
 
+-- The pos of the first identifier's type. It's the topmost and the leftmost.
+identTypeStartPos node = ImVec2 ( x $ servNamePos node ) ( ( y ( servNamePos node ) ) + pad_Y )
+identTypePoses node = zipWith ImVec2
+  [ node & identTypeStartPos & x, node & identTypeStartPos & x .. ]
+  [ node & identTypeStartPos & y, ( node & identTypeStartPos & y ) + pad_Y .. ]
+
+
 drawNode :: Node -> StateT AppState IO ()
 drawNode node = do
 
@@ -47,7 +54,12 @@ drawNode node = do
 
       drawMap = Map.map ( \( f, f_Edit ) -> ( f node, f_Edit node ) ) drawMap_Partial
 
-      drawNoEdit = liftIO $ execStateT ( sequence_ $ List.map ( fst . snd ) ( Map.toList drawMap ) ) appState
+      drawIdents = sequence_ $ zipWith drawIdent ( identTypePoses node ) ( Map.toList $ node ^. #activity . #identifiers )
+
+      drawNoEdit = do
+        ( liftIO $ execStateT ( sequence_ $ List.map ( fst . snd ) ( Map.toList drawMap ) ) appState ) >>=
+          ( liftIO . ( execStateT drawIdents ) ) >>=
+            put
 
 
   DearImGui.pushItemWidth 150
@@ -55,7 +67,7 @@ drawNode node = do
 
   case appState ^. #nodeEdit of
     Nothing ->
-      put =<< drawNoEdit
+      drawNoEdit
 
     Just nodeEdit -> do
       -- If editing this node
@@ -68,7 +80,7 @@ drawNode node = do
 
         put =<< ( liftIO $ execStateT ( sequence_ fs ) appState )
       else
-        put =<< drawNoEdit
+        drawNoEdit
 
 
   DearImGui.popItemWidth
@@ -185,6 +197,20 @@ drawServ_Edit node = do
   DearImGui.button ( "Cancel## service for " ++ actName ) >>= \case
     False -> return ()
     True  -> put $ appState & #nodeEdit .~ Nothing
+
+
+drawIdent :: ImVec2 -> ( String, String ) -> StateT AppState IO ()
+drawIdent pos ( identType, identVal ) = do
+
+  appState <- get
+
+  --let actName = node ^. #activity . #name
+  
+  let cursorPosRef'  = appState ^. #cursorPosRef
+      setCursorPos'' = Utils.setCursorPos' cursorPosRef'
+
+  setCursorPos'' pos
+  DearImGui.text identType
 
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
