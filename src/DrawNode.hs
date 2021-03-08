@@ -220,6 +220,8 @@ drawIdent node pos ( identType, identVal ) = do
   let cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
+  let imGuiIdPostFix = "##for identifier " ++ identType ++ " " ++ identVal ++ " for " ++ actName
+
   let drawNoEdit_Ident = do
         setCursorPos'' pos
         DearImGui.text identType
@@ -228,7 +230,7 @@ drawIdent node pos ( identType, identVal ) = do
         DearImGui.text identVal
 
         setCursorPos'' editBtnPos
-        DearImGui.button ( "Edit## identifier " ++ identType ++ " " ++ identVal ++ " for " ++ actName ) >>= \case
+        DearImGui.button ( "Edit" ++ imGuiIdPostFix ) >>= \case
           False -> return ()
           True  -> put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
 
@@ -244,7 +246,23 @@ drawIdent node pos ( identType, identVal ) = do
       if not isEditingThisField then
         drawNoEdit_Ident
       else do
-        return ()
+        isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) ( appState ^. #nodeIdentTypeEdit )
+        case isTypeComboOpen of
+          False -> return ()
+          True  -> do
+            let
+              drawIdentTypeSel :: String -> StateT AppState IO ()
+              drawIdentTypeSel identType = do
+                isSelected <- DearImGui.selectable identType
+                case isSelected of
+                  False -> return ()
+                  True  -> put $ appState & #nodeIdentTypeEdit .~ identType
+
+              drawIdentTypeSels :: StateT AppState IO ()
+              drawIdentTypeSels = mapM_ drawIdentTypeSel ( Map.keys $ appState ^. #appData . #allIdentifiers )
+
+            put =<< ( liftIO $ execStateT drawIdentTypeSels appState )
+            DearImGui.endCombo
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
 updateNodes actName lens newVal nodes =
