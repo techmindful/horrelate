@@ -54,11 +54,14 @@ drawNode node = do
 
       drawMap = Map.map ( \( f, f_Edit ) -> ( f node, f_Edit node ) ) drawMap_Partial
 
-      drawIdents = sequence_ $ zipWith drawIdent ( identTypePoses node ) ( Map.toList $ node ^. #activity . #identifiers )
+      drawIdents appState =
+        liftIO $ execStateT
+          ( sequence_ $ zipWith drawIdent ( identTypePoses node ) ( Map.toList $ node ^. #activity . #identifiers ) )
+          appState
 
       drawNoEdit = do
         ( liftIO $ execStateT ( sequence_ $ List.map ( fst . snd ) ( Map.toList drawMap ) ) appState ) >>=
-          ( liftIO . ( execStateT drawIdents ) ) >>=
+          drawIdents >>=
             put
 
 
@@ -78,7 +81,9 @@ drawNode node = do
 
           fs = List.map f_PickFunc ( Map.toList drawMap )
 
-        put =<< ( liftIO $ execStateT ( sequence_ fs ) appState )
+        ( liftIO $ execStateT ( sequence_ fs ) appState ) >>=
+          drawIdents >>=
+            put
       else
         drawNoEdit
 
