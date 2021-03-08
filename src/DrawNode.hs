@@ -56,7 +56,7 @@ drawNode node = do
 
       drawIdents appState =
         liftIO $ execStateT
-          ( sequence_ $ zipWith drawIdent ( identTypePoses node ) ( Map.toList $ node ^. #activity . #identifiers ) )
+          ( sequence_ $ zipWith ( drawIdent node ) ( identTypePoses node ) ( Map.toList $ node ^. #activity . #identifiers ) )
           appState
 
       drawNoEdit = do
@@ -204,18 +204,24 @@ drawServ_Edit node = do
     True  -> put $ appState & #nodeEdit .~ Nothing
 
 
-drawIdent :: ImVec2 -> ( String, String ) -> StateT AppState IO ()
-drawIdent pos ( identType, identVal ) = do
+drawIdent :: Node -> ImVec2 -> ( String, String ) -> StateT AppState IO ()
+drawIdent node pos ( identType, identVal ) = do
 
   appState <- get
 
-  --let actName = node ^. #activity . #name
+  let act = node ^. #activity
+      actName = act ^. #name
+
+  let identValPos = ImVec2 ( x pos + 60 ) ( y pos )
   
   let cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
   setCursorPos'' pos
   DearImGui.text identType
+
+  setCursorPos'' identValPos
+  DearImGui.text identVal
 
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
