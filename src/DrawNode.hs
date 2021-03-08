@@ -213,7 +213,7 @@ drawIdent node pos ( identType, identVal ) = do
       actName = act ^. #name
 
   let identValPos   = ImVec2 ( x pos + 60 ) ( y pos )
-      editBtnPos    = ImVec2 ( x identValPos + 60 ) ( y pos )
+      editBtnPos    = ImVec2 ( x identValPos + 110 ) ( y pos )
       confirmBtnPos = editBtnPos
       cancelBtnPos  = ImVec2 ( x confirmBtnPos + 60 ) ( y confirmBtnPos )
   
@@ -243,7 +243,7 @@ drawIdent node pos ( identType, identVal ) = do
 
       if not isEditingThisField then
         drawNoEdit_Ident
-      else
+      else do
         return ()
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
