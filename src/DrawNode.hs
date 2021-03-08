@@ -217,12 +217,26 @@ drawIdent node pos ( identType, identVal ) = do
   let cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
 
-  setCursorPos'' pos
-  DearImGui.text identType
+  let drawNoEdit_Ident = do
+        setCursorPos'' pos
+        DearImGui.text identType
 
-  setCursorPos'' identValPos
-  DearImGui.text identVal
+        setCursorPos'' identValPos
+        DearImGui.text identVal
 
+  case appState ^. #nodeEdit of
+    Nothing ->
+      drawNoEdit_Ident
+
+    Just nodeEdit -> do
+      let isEditingThisField =
+            ( nodeEdit ^. #actName == actName ) &&
+            ( nodeEdit ^. #field   == IdentField identType identVal ) 
+
+      if not isEditingThisField then
+        drawNoEdit_Ident
+      else
+        return ()
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
 updateNodes actName lens newVal nodes =

@@ -66,7 +66,7 @@ data NodeEdit = NodeEdit {
 data NodeField
   = ActField
   | ServField
-  | IdentField
+  | IdentField String String
   deriving ( Eq, Generic, Ord )
 
 
