@@ -212,7 +212,10 @@ drawIdent node pos ( identType, identVal ) = do
   let act = node ^. #activity
       actName = act ^. #name
 
-  let identValPos = ImVec2 ( x pos + 60 ) ( y pos )
+  let identValPos   = ImVec2 ( x pos + 60 ) ( y pos )
+      editBtnPos    = ImVec2 ( x identValPos + 60 ) ( y pos )
+      confirmBtnPos = editBtnPos
+      cancelBtnPos  = ImVec2 ( x confirmBtnPos + 60 ) ( y confirmBtnPos )
   
   let cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
@@ -223,6 +226,11 @@ drawIdent node pos ( identType, identVal ) = do
 
         setCursorPos'' identValPos
         DearImGui.text identVal
+
+        setCursorPos'' editBtnPos
+        DearImGui.button ( "Edit## identifier " ++ identType ++ " " ++ identVal ++ " for " ++ actName ) >>= \case
+          False -> return ()
+          True  -> put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
 
   case appState ^. #nodeEdit of
     Nothing ->
