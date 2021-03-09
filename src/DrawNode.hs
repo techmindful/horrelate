@@ -1,3 +1,4 @@
+{-# language FlexibleContexts #-}
 {-# language LambdaCase #-}
 {-# language OverloadedLabels #-}
 {-# language RankNTypes #-}
@@ -246,11 +247,16 @@ drawIdent node pos ( identType, identVal ) = do
       if not isEditingThisField then
         drawNoEdit_Ident
       else do
-        let comboActiveStr = case appState ^. #nodeIdentTypeEdit of
+
+        -- Draw identifier type combo.
+
+        let typeComboActiveStr = case appState ^. #nodeIdentTypeEdit of
               Nothing -> ""
               Just s  -> s
 
-        isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) comboActiveStr
+        setCursorPos'' pos
+        DearImGui.pushItemWidth 100
+        isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) typeComboActiveStr
         case isTypeComboOpen of
           False -> return ()
           True  -> do
@@ -267,6 +273,48 @@ drawIdent node pos ( identType, identVal ) = do
 
             put =<< ( liftIO $ execStateT drawIdentTypeSels appState )
             DearImGui.endCombo
+        DearImGui.popItemWidth
+
+        -- Draw identifier value combo.
+        
+        let valComboActiveStr = case appState ^. #nodeIdentValEdit of
+              Nothing -> ""
+              Just s  -> s
+
+        setCursorPos'' identValPos
+        DearImGui.pushItemWidth 150
+        isValComboOpen <- DearImGui.beginCombo ( "##Identifier value combo" ++ imGuiIdPostFix ) valComboActiveStr
+        case isValComboOpen of
+          False -> return ()
+          True  -> do
+            case appState ^. #nodeIdentTypeEdit of
+              Nothing -> return ()
+              Just identType -> do
+                let
+                  onSel val = put $ appState & #nodeIdentValEdit .~ Just val
+
+                  maybeVals = Map.lookup identType ( appState ^. #appData . #allIdentifiers )
+                  vals = case maybeVals of
+                           Nothing -> []
+                           Just vals -> vals
+
+                  drawIdentValSel = \val -> drawComboSel val ( onSel val )
+
+                  drawIdentValSels = mapM_ drawIdentValSel vals
+
+                put =<< ( liftIO $ execStateT drawIdentValSels appState )
+            DearImGui.endCombo
+
+        DearImGui.popItemWidth
+
+
+drawComboSel :: String -> StateT AppState IO () -> StateT AppState IO ()
+drawComboSel selStr onSel = do
+  isSelected <- DearImGui.selectable selStr
+  case isSelected of
+    False -> return ()
+    True  -> onSel
+
 
 updateNodes :: String -> Lens' Node a -> a -> [ Node ] -> [ Node ]
 updateNodes actName lens newVal nodes =
