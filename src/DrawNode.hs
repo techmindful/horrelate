@@ -246,7 +246,11 @@ drawIdent node pos ( identType, identVal ) = do
       if not isEditingThisField then
         drawNoEdit_Ident
       else do
-        isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) ( appState ^. #nodeIdentTypeEdit )
+        let comboActiveStr = case appState ^. #nodeIdentTypeEdit of
+              Nothing -> ""
+              Just s  -> s
+
+        isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) comboActiveStr
         case isTypeComboOpen of
           False -> return ()
           True  -> do
@@ -256,7 +260,7 @@ drawIdent node pos ( identType, identVal ) = do
                 isSelected <- DearImGui.selectable identType
                 case isSelected of
                   False -> return ()
-                  True  -> put $ appState & #nodeIdentTypeEdit .~ identType
+                  True  -> put $ appState & #nodeIdentTypeEdit .~ Just identType
 
               drawIdentTypeSels :: StateT AppState IO ()
               drawIdentTypeSels = mapM_ drawIdentTypeSel ( Map.keys $ appState ^. #appData . #allIdentifiers )
