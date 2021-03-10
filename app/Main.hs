@@ -99,8 +99,6 @@ main = do
 
                                        & #nodeActNameEditRef .~ newNodeActNameEditRef
                                        & #nodeServEdit .~ ""
-                                       & #nodeIdentTypeEdit .~ Nothing
-                                       & #nodeIdentValEdit .~ Nothing
                                        & #nodeIdentEdit .~ NoEdit
 
                                        & #cursorPosRef .~ newCursorPosRef

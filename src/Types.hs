@@ -35,8 +35,6 @@ data AppState = AppState {
 
 , nodeActNameEditRef :: IORef String
 , nodeServEdit :: String
-, nodeIdentTypeEdit :: Maybe String
-, nodeIdentValEdit  :: Maybe String
 , nodeIdentEdit :: IdentEdit
 
 , cursorPosRef :: IORef ImVec2

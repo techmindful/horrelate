@@ -237,7 +237,7 @@ drawIdent node pos ( identType, identVal ) = do
           False -> return ()
           True  -> do
             put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
-            -- Clear previous edit.
+                           -- Clear previous edit.
                            & #nodeIdentEdit .~ NoEdit
 
   case appState ^. #nodeEdit of
