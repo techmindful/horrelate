@@ -313,8 +313,19 @@ drawIdent node pos ( identType, identVal ) = do
               _ -> return ()
 
             DearImGui.endCombo
-
         DearImGui.popItemWidth
+
+        -- Draw the buttons.
+        setCursorPos'' confirmBtnPos
+        DearImGui.button ( "Confirm##" ++ imGuiIdPostFix ) >>= \case
+          False -> return ()
+          True  -> do
+            let f_UpdateIdentMap = ( Map.insert typeComboActiveStr valComboActiveStr ) . ( Map.delete identType )
+                newIdentMap = f_UpdateIdentMap $ node ^. #activity . #identifiers
+
+            put $ appState & #appData . #nodes %~ updateNodes actName ( #activity . #identifiers ) newIdentMap
+                           & #nodeIdentEdit .~ NoEdit
+                           & #nodeEdit .~ Nothing
 
 
 drawComboSel :: String -> StateT AppState IO () -> StateT AppState IO ()
