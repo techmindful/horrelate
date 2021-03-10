@@ -238,7 +238,7 @@ drawIdent node pos ( identType, identVal ) = do
         DearImGui.button ( "Edit" ++ imGuiIdPostFix ) >>= \case
           False -> return ()
           True  -> do
-            put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
+            put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType } )
                            -- Clear previous edit.
                            & #nodeIdentEdit .~ NoEdit
 
@@ -249,7 +249,7 @@ drawIdent node pos ( identType, identVal ) = do
     Just nodeEdit -> do
       let isEditingThisField =
             ( nodeEdit ^. #actName == actName ) &&
-            ( nodeEdit ^. #field   == IdentField identType identVal ) 
+            ( nodeEdit ^. #field   == IdentField identType ) 
 
       if not isEditingThisField then
         drawNoEdit_Ident
@@ -316,6 +316,7 @@ drawIdent node pos ( identType, identVal ) = do
         DearImGui.popItemWidth
 
         -- Draw the buttons.
+
         setCursorPos'' confirmBtnPos
         DearImGui.button ( "Confirm##" ++ imGuiIdPostFix ) >>= \case
           False -> return ()
@@ -324,7 +325,6 @@ drawIdent node pos ( identType, identVal ) = do
                 newIdentMap = f_UpdateIdentMap $ node ^. #activity . #identifiers
 
             put $ appState & #appData . #nodes %~ updateNodes actName ( #activity . #identifiers ) newIdentMap
-                           & #nodeIdentEdit .~ NoEdit
                            & #nodeEdit .~ Nothing
 
 
