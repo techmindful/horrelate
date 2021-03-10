@@ -214,11 +214,13 @@ drawIdent node pos ( identType, identVal ) = do
   let act = node ^. #activity
       actName = act ^. #name
 
-  let typeComboWidth = 100
-      identValPos   = ImVec2 ( x pos + typeComboWidth ) ( y pos )
-      editBtnPos    = ImVec2 ( x identValPos + 110 ) ( y pos )
-      confirmBtnPos = editBtnPos
-      cancelBtnPos  = ImVec2 ( x confirmBtnPos + 60 ) ( y confirmBtnPos )
+  let identTypePos   = pos
+      identTypeWidth = 100
+      identValPos    = ImVec2 ( x identTypePos + identTypeWidth ) ( y identTypePos )
+      identValWidth  = 150
+      editBtnPos     = ImVec2 ( x identValPos + identValWidth ) ( y identTypePos )
+      confirmBtnPos  = editBtnPos
+      cancelBtnPos   = ImVec2 ( x confirmBtnPos + 60 ) ( y confirmBtnPos )
   
   let cursorPosRef'  = appState ^. #cursorPosRef
       setCursorPos'' = Utils.setCursorPos' cursorPosRef'
@@ -226,7 +228,7 @@ drawIdent node pos ( identType, identVal ) = do
   let imGuiIdPostFix = "##for identifier " ++ identType ++ " " ++ identVal ++ " for " ++ actName
 
   let drawNoEdit_Ident = do
-        setCursorPos'' pos
+        setCursorPos'' identTypePos
         DearImGui.text identType
 
         setCursorPos'' identValPos
@@ -260,7 +262,7 @@ drawIdent node pos ( identType, identVal ) = do
               _ -> ""
 
         setCursorPos'' pos
-        DearImGui.pushItemWidth typeComboWidth
+        DearImGui.pushItemWidth identTypeWidth
         isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) typeComboActiveStr
         case isTypeComboOpen of
           False -> return ()
@@ -287,7 +289,7 @@ drawIdent node pos ( identType, identVal ) = do
               _ -> ""
 
         setCursorPos'' identValPos
-        DearImGui.pushItemWidth 150
+        DearImGui.pushItemWidth identValWidth
         isValComboOpen <- DearImGui.beginCombo ( "##Identifier value combo" ++ imGuiIdPostFix ) valComboActiveStr
         case isValComboOpen of
           False -> return ()
