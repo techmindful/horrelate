@@ -3,7 +3,7 @@
 {-# language LambdaCase #-}
 {-# language ScopedTypeVariables #-}
 
-module Utils where
+module Utils.Utils where
 
 import           Types
 

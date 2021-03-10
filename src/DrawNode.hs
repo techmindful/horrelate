@@ -5,8 +5,9 @@
 
 module DrawNode ( drawNode ) where
 
+import           Node
 import           Types
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )
@@ -213,7 +214,8 @@ drawIdent node pos ( identType, identVal ) = do
   let act = node ^. #activity
       actName = act ^. #name
 
-  let identValPos   = ImVec2 ( x pos + 60 ) ( y pos )
+  let typeComboWidth = 100
+      identValPos   = ImVec2 ( x pos + typeComboWidth ) ( y pos )
       editBtnPos    = ImVec2 ( x identValPos + 110 ) ( y pos )
       confirmBtnPos = editBtnPos
       cancelBtnPos  = ImVec2 ( x confirmBtnPos + 60 ) ( y confirmBtnPos )
@@ -233,7 +235,10 @@ drawIdent node pos ( identType, identVal ) = do
         setCursorPos'' editBtnPos
         DearImGui.button ( "Edit" ++ imGuiIdPostFix ) >>= \case
           False -> return ()
-          True  -> put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
+          True  -> do
+            put $ appState & #nodeEdit .~ ( Just $ NodeEdit { actName = actName, field = IdentField identType identVal } )
+            -- Clear previous edit.
+                           & #nodeIdentEdit .~ NoEdit
 
   case appState ^. #nodeEdit of
     Nothing ->
@@ -250,12 +255,12 @@ drawIdent node pos ( identType, identVal ) = do
 
         -- Draw identifier type combo.
 
-        let typeComboActiveStr = case appState ^. #nodeIdentTypeEdit of
-              Nothing -> ""
-              Just s  -> s
+        let typeComboActiveStr = case appState ^. #nodeIdentEdit of
+              IdentEdit typeStr _ -> typeStr
+              _ -> ""
 
         setCursorPos'' pos
-        DearImGui.pushItemWidth 100
+        DearImGui.pushItemWidth typeComboWidth
         isTypeComboOpen <- DearImGui.beginCombo ( "##Identifier type combo" ++ imGuiIdPostFix ) typeComboActiveStr
         case isTypeComboOpen of
           False -> return ()
@@ -266,7 +271,7 @@ drawIdent node pos ( identType, identVal ) = do
                 isSelected <- DearImGui.selectable identType
                 case isSelected of
                   False -> return ()
-                  True  -> put $ appState & #nodeIdentTypeEdit .~ Just identType
+                  True  -> put $ appState & #nodeIdentEdit .~ IdentEdit identType Nothing
 
               drawIdentTypeSels :: StateT AppState IO ()
               drawIdentTypeSels = mapM_ drawIdentTypeSel ( Map.keys $ appState ^. #appData . #allIdentifiers )
@@ -277,9 +282,9 @@ drawIdent node pos ( identType, identVal ) = do
 
         -- Draw identifier value combo.
         
-        let valComboActiveStr = case appState ^. #nodeIdentValEdit of
-              Nothing -> ""
-              Just s  -> s
+        let valComboActiveStr = case appState ^. #nodeIdentEdit of
+              IdentEdit _ ( Just valStr ) -> valStr
+              _ -> ""
 
         setCursorPos'' identValPos
         DearImGui.pushItemWidth 150
@@ -287,11 +292,10 @@ drawIdent node pos ( identType, identVal ) = do
         case isValComboOpen of
           False -> return ()
           True  -> do
-            case appState ^. #nodeIdentTypeEdit of
-              Nothing -> return ()
-              Just identType -> do
+            case appState ^. #nodeIdentEdit of
+              IdentEdit identType _ -> do
                 let
-                  onSel val = put $ appState & #nodeIdentValEdit .~ Just val
+                  onSel val = put $ appState & #nodeIdentEdit .~ IdentEdit identType ( Just val )
 
                   maybeVals = Map.lookup identType ( appState ^. #appData . #allIdentifiers )
                   vals = case maybeVals of
@@ -303,6 +307,9 @@ drawIdent node pos ( identType, identVal ) = do
                   drawIdentValSels = mapM_ drawIdentValSel vals
 
                 put =<< ( liftIO $ execStateT drawIdentValSels appState )
+
+              _ -> return ()
+
             DearImGui.endCombo
 
         DearImGui.popItemWidth

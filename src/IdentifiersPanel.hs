@@ -4,7 +4,7 @@
 module IdentifiersPanel ( drawIdentifiersPanel ) where
 
 import           Types
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )

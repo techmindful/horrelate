@@ -10,9 +10,8 @@ import           Consts
 import           DrawNode ( drawNode )
 import           IdentifiersPanel ( drawIdentifiersPanel )
 import           ServicePanel     ( drawServicePanel )
-import           ParseCmd ( parseCmd )
 import           Types
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )

@@ -6,6 +6,9 @@
 
 module Types where
 
+import           Activity
+import           Node
+
 import           DearImGui ( ImVec2(..) )
 
 import           Data.Aeson
@@ -16,12 +19,6 @@ import qualified Data.Map.Strict as Map
 import           Data.Map.Strict ( Map(..) )
 import           GHC.Generics
 
-
--- ImVec2 additional classes
-instance FromJSON ImVec2 where
-  parseJSON (Object v) = ImVec2 <$> v .: "x" <*> v .: "y"
-instance Show ImVec2 where
-  show ( ImVec2 { x = x', y = y' } ) = "ImVec2 { x = " ++ show x' ++ ", y = " ++ show y' ++ " }"
 
 data AppState = AppState {
 
@@ -40,6 +37,7 @@ data AppState = AppState {
 , nodeServEdit :: String
 , nodeIdentTypeEdit :: Maybe String
 , nodeIdentValEdit  :: Maybe String
+, nodeIdentEdit :: IdentEdit
 
 , cursorPosRef :: IORef ImVec2
 } deriving ( Generic )
@@ -50,41 +48,7 @@ data AppData = AppData {
 , allIdentifiers  :: Map String [ String ]
 , nodes           :: [ Node ]
 } deriving ( Generic, Show )
-
-
-data Node = Node {
-  activity :: Activity
-, drawPos  :: ImVec2
-} deriving ( Generic, Show )
-instance FromJSON Node
-
-
-data NodeEdit = NodeEdit {
-  actName :: String
-, field   :: NodeField
-} deriving ( Generic )
-
-
-data NodeField
-  = ActField
-  | ServField
-  | IdentField String String
-  deriving ( Eq, Generic, Ord )
-
-
 instance FromJSON AppData
-data Command
-  = Add
-  | Quit
-  deriving ( Eq, Show )
-
-
-data Activity = Activity {
-  name :: String
-, service :: String
-, identifiers :: Map String String
-} deriving ( Eq, Show, Generic )
-instance FromJSON Activity
 
 
 type ImGuiWindowPosRef  = IORef ImVec2

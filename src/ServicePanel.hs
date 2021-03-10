@@ -8,7 +8,7 @@ module ServicePanel ( drawServicePanel ) where
 
 import           Consts
 import           Types
-import qualified Utils
+import qualified Utils.Utils as Utils
 
 import qualified DearImGui
 import           DearImGui ( ImVec2(..) )

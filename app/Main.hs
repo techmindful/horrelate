@@ -5,6 +5,7 @@
 
 module Main ( main ) where
 
+import           Node
 import           Types
 import           MainLoop ( mainLoop )
 
@@ -100,6 +101,7 @@ main = do
                                        & #nodeServEdit .~ ""
                                        & #nodeIdentTypeEdit .~ Nothing
                                        & #nodeIdentValEdit .~ Nothing
+                                       & #nodeIdentEdit .~ NoEdit
 
                                        & #cursorPosRef .~ newCursorPosRef
 
