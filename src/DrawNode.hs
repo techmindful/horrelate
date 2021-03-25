@@ -19,6 +19,8 @@ import qualified Data.List as List
 import qualified Data.Map  as Map
 
 
+
+
 pad_Y = 20
 
 
@@ -88,6 +90,10 @@ drawNode node = do
             put
       else
         drawNoEdit
+
+  minRef <- liftIO $ newIORef $ ImVec2 0 0
+  maxRef <- liftIO $ newIORef $ ImVec2 200 200
+  DearImGui.addRect minRef maxRef 4294967295
 
 
   DearImGui.popItemWidth
